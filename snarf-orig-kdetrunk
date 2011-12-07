@@ -1,0 +1,42 @@
+#! /usr/bin/perl -w
+
+#Script to download all the orig.tar.* in a repository
+
+# TODO: read these values from a configuration file.
+my ($debian_mirror) = 'http://luser:go-home-noob@pkg-kde.alioth.debian.org';
+my ($debian_mirror_dir) = "/kdetrunk";
+my ($packages_source_file) = "packages-source";
+
+my ($current_src_package_dir) = "";
+my ($current_filename) = "";
+my ($current_url) = "";
+my ($reading_files) = 0;
+
+open( F, "<$packages_source_file" ) || die "Couldn't open $f";
+while (<F>) {
+	chop($_);
+	if ($_ =~ /Directory: */) {
+		$current_src_package_dir = $_;
+		$current_src_package_dir =~ s/Directory: //;
+	} elsif ($_ =~ /Files:*/) {
+		$reading_files = 1;
+		next;
+	} elsif ($reading_files) {
+		#print $_;
+		if ($_ !~ /^ .*/) {
+			$reading_files = 0;
+		}
+	}
+	if ($reading_files) {
+		$current_filename = $_;
+		if ($current_filename =~ /.*\.orig.*\.tar\..*/) {
+			my (@split_str) = split(" ",$current_filename);
+			$current_filename = $split_str[2];
+			$current_url = $debian_mirror . $debian_mirror_dir . "/" . $current_src_package_dir . "/" . $current_filename;
+			print $current_url . "\n";
+			my (@command) = ("wget","-c",$current_url);
+			#system (@command);
+		}
+	}
+}
+close(F);

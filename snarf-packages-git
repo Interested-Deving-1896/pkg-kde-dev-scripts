@@ -1,0 +1,17 @@
+#! /bin/sh
+
+# Script to dowload all the git repositories.
+# It clones all the repositories in the current directory.
+
+
+# TODO: read these values from a configuration file.
+alioth_username=go-home-noob
+packages_source_file=packages-source
+
+for i in $(cat ${packages_source_file} | grep ^Vcs-Git: | \
+	sed -e "s/Vcs-Git:[[:space:]]*//;\
+	s/anonscm/git/;\
+	s/git/git+ssh/;\
+	s/git.debian.org/${alioth_username}@git.debian.org\/git/"); do
+		git clone $i;
+done

@@ -1,0 +1,34 @@
+#! /bin/bash
+
+for i in $(find . -maxdepth 1 -type d ! -name . ! -name kde-l10n); do
+	cd $i;
+	git clean -xdff &> /dev/null;
+	for j in $(ls .$i*.orig*.tar.*); do
+		echo "Uncompressing $j";
+		tar -xzf $j --strip=1 &>/dev/null || \
+			tar -xjf $j --strip=1 &>/dev/null;
+	done;
+	echo "Building source package in $i";
+	debuild --no-lintian -us -uc -S &>/dev/null;
+	cd - > /dev/null;
+done;
+
+#kde-l10n is special
+cd kde-l10n;	
+	git clean -xdff &> /dev/null;
+	debian/upstream2orig ../kde-l10n_*orig*.tar.bz2
+	echo "Building source package in ./kde-l10n";
+	debuild --no-lintian -us -uc -S -sa &>/dev/null;
+cd - > /dev/null;
+rmdir kde-l10n_*.orig
+
+# Check if something failed
+for i in $(find . -maxdepth 1 -type d ! -name .); do
+	cd $i;
+	ls .$i*_source.changes &>/dev/null
+	if [ $? -ne 0 ]; then
+		echo "FAILED BUILDING SOURCE PACKAGE IN $i";
+	fi
+	cd - > /dev/null;
+done;
+

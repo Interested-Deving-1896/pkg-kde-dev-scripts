@@ -1,0 +1,8 @@
+#! /bin/bash
+
+#TODO: make possible to change the dch parameters.
+for i in $(find . -maxdepth 1 -type d ! -name .); do
+	cd $i;
+	dch -r -M -D experimental
+	cd - > /dev/null;
+done;

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+for i in *_source.changes; do
+	#echo $i;
+	#echo $(echo $i | sed -e 's/_source.changes$/_amd64.changes/');
+	mergechanges -f $i $(echo $i | sed -e 's/_source.changes$/_amd64.changes/')
+done

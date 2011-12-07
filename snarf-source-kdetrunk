@@ -1,0 +1,43 @@
+#! /bin/sh
+
+# Script to create/update packages-source
+# Writes output to ./packages-source
+
+debian_mirror=http://luser:go-home-noob@pkg-kde.alioth.debian.org
+debian_mirror_dir=/kdetrunk
+
+# Alterable through command line options
+
+distribution=experimental
+component=main 
+
+
+####################################################################3
+# Write usage message
+usage() {
+	echo "usage: $progname [-a|--architecture] [-c|--component] 
+       [-d|--distribution]" 1>&2
+}
+####################################################################3
+
+set -e
+
+progname="$0"
+loop=yes
+while [ $loop = yes ]
+do
+        case "$1" in
+	-c|--component)    component="$2"; shift 2;;
+        -d|--distribution) distribution="$2"; shift 2;;
+        --)                shift; loop=no ;;
+        -h|--help)         usage; exit 0 ;;
+        -*)                error "unknown option $1" ;;
+        *)                 loop=no ;;
+        esac
+done
+
+
+wget $debian_mirror/$debian_mirror_dir/dists/$distribution/$component/source/Sources.gz
+
+zcat Sources.gz > packages-source
+rm -f Sources.gz
