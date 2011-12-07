@@ -9,7 +9,7 @@ for i in $(find . -maxdepth 1 -type d ! -name . ! -name kde-l10n); do
 			tar -xjf $j --strip=1 &>/dev/null;
 	done;
 	echo "Building source package in $i";
-	debuild --no-lintian -us -uc -S &>/dev/null;
+	debuild --no-lintian -us -uc -S;
 	cd - > /dev/null;
 done;
 
