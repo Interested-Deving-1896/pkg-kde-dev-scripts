@@ -4,6 +4,6 @@ tarballs_directory=$1
 version=$2
 
 for i in $(find . -maxdepth 1 -type d ! -name .); do
-	cp $tarballs_directory/$i-$version.tar.bz2 \
+	ln -s $tarballs_directory/$i-$version.tar.bz2 \
 		${i}_${version}.orig.tar.bz2;
 done
