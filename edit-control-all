@@ -1,6 +1,5 @@
 #! /bin/bash
 
 for i in $(find . -maxdepth 1 -type d ! -name .); do
-	#TODO: Use the same editor than dch.
-	vim $i/debian/control;
+	$EDITOR $i/debian/control;
 done;
