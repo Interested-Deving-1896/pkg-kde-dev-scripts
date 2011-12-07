@@ -14,13 +14,13 @@ for i in $(find . -maxdepth 1 -type d ! -name . ! -name kde-l10n); do
 done;
 
 #kde-l10n is special
-cd kde-l10n;	
-	git clean -xdff &> /dev/null;
-	debian/upstream2orig ../kde-l10n_*orig*.tar.bz2
-	echo "Building source package in ./kde-l10n";
-	debuild --no-lintian -us -uc -S -sa &>/dev/null;
-cd - > /dev/null;
-rmdir kde-l10n_*.orig
+#cd kde-l10n;	
+#	git clean -xdff &> /dev/null;
+#	debian/upstream2orig ../kde-l10n_*orig*.tar.bz2
+#	echo "Building source package in ./kde-l10n";
+#	debuild --no-lintian -us -uc -S -sa &>/dev/null;
+#cd - > /dev/null;
+#rmdir kde-l10n_*.orig
 
 # Check if something failed
 for i in $(find . -maxdepth 1 -type d ! -name .); do
