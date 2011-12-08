@@ -1,0 +1,48 @@
+#! /bin/bash
+
+# Script to create/update Packages-primary
+# Writes output to ./Packages-primary
+
+# This script depends on ftpget, found in the lftp package.  It should
+# be customized for your own use, as chances are you have a mirror
+# closer to you than Lancaster University in the UK.
+
+#debian_mirror=sunsite.doc.ic.ac.uk
+debian_mirror=http://luser:go-home-noob@pkg-kde.alioth.debian.org
+#debian_mirror_dir=/pub/computing/operating-systems/linux/debian
+debian_mirror_dir=/kdetrunk
+
+
+# Alterable through command line options
+distribution=experimental
+component=main 
+architecture=i386
+
+####################################################################3
+# Write usage message
+usage() {
+	echo "usage: $progname [-a|--architecture] [-c|--component] 
+       [-d|--distribution]" 1>&2
+}
+####################################################################3
+
+progname="$0"
+loop=yes
+while [ $loop = yes ]
+do
+        case "$1" in
+        -a|--architecture) architecture="$2"; shift 2;;
+	-c|--component)    component="$2"; shift 2;;
+        -d|--distribution) distribution="$2"; non_us_distribution="$2"; shift 2;;
+        -q|--queit)        verbose="-q"; shift;; 
+        --)                shift; loop=no ;;
+        -h|--help)         usage; exit 0 ;;
+        -*)                error "unknown option $1" ;;
+        *)                 loop=no ;;
+        esac
+done
+
+wget $debian_mirror/$debian_mirror_dir/dists/$distribution/$component/binary-$architecture/Packages.gz
+
+zcat Packages.gz > packages-i386
+rm -f Packages.gz
