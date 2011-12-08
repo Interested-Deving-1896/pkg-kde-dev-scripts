@@ -3,11 +3,11 @@
 for i in $(find . -maxdepth 1 -type d ! -name . ! -name kde-l10n); do
 	cd $i;
 	git clean -xdff &> /dev/null;
-	for j in $(ls .$i*.orig*.tar.*); do
-		echo "Uncompressing $j";
-		tar -xzf $j --strip=1 &>/dev/null || \
-			tar -xjf $j --strip=1 &>/dev/null;
-	done;
+#	for j in $(ls .$i*.orig*.tar.*); do
+#		echo "Uncompressing $j";
+#		tar -xzf $j --strip=1 &>/dev/null || \
+#			tar -xjf $j --strip=1 &>/dev/null;
+#	done;
 	echo "Building source package in $i";
 	debuild --no-lintian -us -uc -S;
 	cd - > /dev/null;
