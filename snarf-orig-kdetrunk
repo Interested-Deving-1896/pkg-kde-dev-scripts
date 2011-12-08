@@ -35,7 +35,7 @@ while (<F>) {
 			$current_url = $debian_mirror . $debian_mirror_dir . "/" . $current_src_package_dir . "/" . $current_filename;
 			print $current_url . "\n";
 			my (@command) = ("wget","-c",$current_url);
-			#system (@command);
+			system (@command);
 		}
 	}
 }
