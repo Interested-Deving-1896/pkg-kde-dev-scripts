@@ -47,7 +47,7 @@ with open('debian/changelog') as changelog_file:
 version = chlog.version
 
 subprocess.call(['sed', '-i', 's/--dbg-package=' + re.escape(dbg_packages[0])
-                 + '/--ddeb-migration=\'' + dbg_packages[0] + ' (<= ' +
+                 + '/--dbgsym-migration=\'' + dbg_packages[0] + ' (<= ' +
                  unicode(version) + '~)\'/', 'debian/rules'])
 
 with open('debian/control', 'w') as f:
