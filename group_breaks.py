@@ -192,7 +192,9 @@ def obtain_rdepends(packages, all, cache):
         rdepends = {}
         for package in source_package['binaries']:
             group_rdepends = apt_rdepends(package, cache) & all
-            rdepends[package] = group_rdepends
+            # Ignore dependencies in the same source package
+            rdepends[package] = group_rdepends.difference(
+                source_package['binaries'])
         source_package['rdepends'] = rdepends
 
 
@@ -322,6 +324,19 @@ def update_breaks(packages, binaries, version, simulate):
     return modified
 
 
+def report(packages, modified, output):
+
+    if modified:
+        logging.info('Modified packages:')
+    for name in modified:
+        s = '{}\t{}\n'.format(name, packages[name]['path'])
+        if output:
+            logging.info(s)
+            output.write(s)
+        else:
+            sys.stdout.write(s)
+
+
 def main():
 
     options = process_options()
@@ -340,16 +355,8 @@ def main():
 
     modified = update_breaks(packages, binaries, upstream_version,
                              options.no_act)
-    if modified:
-        logging.info('Modified packages:')
-    for name in modified:
-        s = '{}\t{}\n'.format(name, packages[name]['path'])
-        if options.output:
-            logging.info(s)
-            options.output.write(s)
-        else:
-            sys.stdout.write(s)
 
+    report(packages, modified, options.output)
 
 if __name__ == "__main__":
     main()
