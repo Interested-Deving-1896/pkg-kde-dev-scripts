@@ -98,8 +98,11 @@ def python_apt_rdepends(package, cache):
     Only Depends are considered. This function uses the python apt module to
     obtain the reverse dependencies.
     '''
-    full_rdepends = cache[package]._pkg.rev_depends_list
     rdepends = set()
+    try:
+        full_rdepends = cache[package]._pkg.rev_depends_list
+    except KeyError:
+        return rdepends
 
     for dep in full_rdepends:
         if dep.dep_type in ('Breaks', 'Conflicts', 'Enhances', 'Pre-Depends',
