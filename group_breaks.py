@@ -56,6 +56,7 @@ def process_options():
     arg_parser.add_argument('--debug', action='store_true')
     arg_parser.add_argument('--no-act', action='store_true')
     arg_parser.add_argument('--output', '-o', type=argparse.FileType('w'))
+    arg_parser.add_argument('--wrap-and-sort-opt', action='append', default=[])
 
     args = arg_parser.parse_args()
 
@@ -268,7 +269,7 @@ def update_control(path, breaks, simulate):
     return changes
 
 
-def commit(path, msg):
+def commit(path, msg, options):
     ''' Commit the changes '''
 
     logging.debug('commit: path={}, msg={}'.format(path, msg))
@@ -281,6 +282,7 @@ def commit(path, msg):
 
     def wrap_and_sort(filename=None):
         cmd = ['wrap-and-sort']
+        cmd += options.wrap_and_sort_opt
         if filename:
             cmd.extend(['-f', filename])
         subprocess.call(cmd, cwd=path)
@@ -297,7 +299,7 @@ def commit(path, msg):
                     cwd=path)
 
 
-def update_breaks(packages, binaries, version, simulate):
+def update_breaks(packages, binaries, version, options):
     ''' Update the 'Breaks' fields for each binary package '''
 
     def get_epoch(rdepend):
@@ -307,6 +309,7 @@ def update_breaks(packages, binaries, version, simulate):
 
     # Package names of the updated ones
     modified = []
+    simulate = options.no_act
 
     for source_name, source_package in packages.items():
         breaks = {}
@@ -322,7 +325,8 @@ def update_breaks(packages, binaries, version, simulate):
         if changes:
             if not simulate:
                 commit(source_package['path'],
-                       'Bump group breaks ({})'.format(version))
+                       'Bump group breaks ({})'.format(version),
+                       options)
             modified.append(source_name)
     return modified
 
@@ -357,9 +361,10 @@ def main():
     obtain_rdepends(packages, all_binaries, cache)
 
     modified = update_breaks(packages, binaries, upstream_version,
-                             options.no_act)
+                             options)
 
     report(packages, modified, options.output)
+
 
 if __name__ == "__main__":
     main()
