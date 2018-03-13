@@ -299,13 +299,16 @@ def commit(path, msg, options):
                     cwd=path)
 
 
-def update_breaks(packages, binaries, version, options):
+def update_breaks(packages, binaries, options):
     ''' Update the 'Breaks' fields for each binary package '''
 
-    def get_epoch(rdepend):
+    def _get_version(source_name):
 
-        source = binaries[rdepend]['source']
-        return packages[source]['version'].epoch
+        v = packages[source_name]['version']
+        version = Version(
+            '.'.join(v.upstream_version.split('.')[:2])
+        )
+        version.epoch = v.epoch
 
     # Package names of the updated ones
     modified = []
@@ -317,15 +320,14 @@ def update_breaks(packages, binaries, version, options):
             if not rdepends:
                 continue
             for rdepend in rdepends:
-                rdepend_version = Version(version)
-                rdepend_version.epoch = get_epoch(rdepend)
+                rdepend_version = _get_version(binaries[rdepend]['source'])
                 breaks.setdefault(package, []).append(
                     (rdepend, rdepend_version))
         changes = update_control(source_package['path'], breaks, simulate)
         if changes:
             if not simulate:
                 commit(source_package['path'],
-                       'Bump group breaks ({})'.format(version),
+                       'Bump group breaks ({})'.format(_get_version(source_name)),
                        options)
             modified.append(source_name)
     return modified
@@ -355,13 +357,9 @@ def main():
 
     binaries = get_binsrc_map(packages)
 
-    upstream_version = get_group_upstream_version(packages)
-    upstream_version = major_minor_version(upstream_version)
-
     obtain_rdepends(packages, all_binaries, cache)
 
-    modified = update_breaks(packages, binaries, upstream_version,
-                             options)
+    modified = update_breaks(packages, binaries, options)
 
     report(packages, modified, options.output)
 
