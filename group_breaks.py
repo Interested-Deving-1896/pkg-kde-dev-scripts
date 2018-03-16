@@ -53,6 +53,8 @@ def process_options():
 
     arg_parser.add_argument('paths', nargs='+',
                             help='Paths to the package dirs to process')
+    arg_parser.add_argument('--depends', action='store_true',
+                            help='Also bump runtime dependency versions')
     arg_parser.add_argument('--debug', action='store_true')
     arg_parser.add_argument('--no-act', action='store_true')
     arg_parser.add_argument('--output', '-o', type=argparse.FileType('w'))
@@ -173,19 +175,6 @@ def get_binsrc_map(packages):
     return binaries
 
 
-def get_group_upstream_version(packages):
-    ''' Return the upstream version in the group '''
-
-    return min(
-        v['version'].upstream_version for k, v in packages.items())
-
-
-def major_minor_version(version):
-    ''' Get MAJOR.minor version '''
-
-    return '.'.join(version.split('.')[:2])
-
-
 def obtain_rdepends(packages, all, cache):
     ''' Add rdepends information of each package
 
@@ -237,20 +226,72 @@ def update_rels(rels, breaks_update):
     return changes
 
 
-def update_control(path, breaks, simulate):
+def update_section_breaks(section, breaks):
+    '''Update the 'Breaks' field '''
+
+    binary = section.get('Package')
+    breaks_update = breaks.get(binary)
+    changes = 0
+    if not breaks_update:
+        return changes
+    rels = deb822.PkgRelation.parse_relations(section.get('Breaks', ''))
+    changes = update_rels(rels, breaks_update)
+    if changes:
+        section['Breaks'] = deb822.PkgRelation.str(rels)
+
+    return changes
+
+
+def update_rels_depends(rels, source, packages, binaries):
+    ''' Bump version of the runtime dependencies '''
+
+    changes = 0
+
+    for rel in rels:
+        for i in rel:
+            name = i['name']
+            if (name in binaries) and \
+                    binaries[name]['source'] != source:
+                # Update existing value
+                version = get_group_version(
+                    packages[binaries[name]['source']])
+
+                if not i['version']:
+                    i['version'] = ('>=', version)
+                    changes += 1
+                    continue
+                cur_version = i['version'][1]
+                if cur_version.startswith('$'):
+                    # subst var, leave alone
+                    continue
+                if version_compare(cur_version, version) < 0:
+                    i['version'] = ('>=', version)
+                    changes += 1
+    return changes
+
+
+def update_section_depends(section, packages, binaries):
+
+    binary = section.get('Package')
+    changes = 0
+    if binary not in binaries:
+        return changes
+    source = binaries[binary]['source']
+
+    for field in ('Depends', 'Recommends', 'Suggests'):
+        rels = deb822.PkgRelation.parse_relations(section.get(field, ''))
+        field_changes = update_rels_depends(rels, source, packages, binaries)
+        if field_changes:
+            section[field] = deb822.PkgRelation.str(rels)
+            changes += field_changes
+
+    return changes
+
+
+def update_control(path, breaks, packages, binaries, depends, simulate):
     ''' Update the control file '''
 
     logging.debug('list_control: path={}, breaks={}'.format(path, breaks))
-
-    def update_section(section, breaks_update):
-        changes = 0
-        if not breaks_update:
-            return changes
-        rels = deb822.PkgRelation.parse_relations(section.get('Breaks', ''))
-        changes = update_rels(rels, breaks_update)
-        if changes:
-            section['Breaks'] = deb822.PkgRelation.str(rels)
-        return changes
 
     filename = os.path.join(path, 'debian/control')
     changes = 0
@@ -260,8 +301,9 @@ def update_control(path, breaks, simulate):
                 deb822.Deb822.iter_paragraphs(control_file)):
             if i:
                 tmpfile.write(b'\n')
-            binary = section.get('Package')
-            changes += update_section(section, breaks.get(binary))
+            changes += update_section_breaks(section, breaks)
+            if depends:
+                changes += update_section_depends(section, packages, binaries)
             section.dump(tmpfile)
         if not simulate and changes:
             tmpfile.flush()
@@ -299,37 +341,53 @@ def commit(path, msg, options):
                     cwd=path)
 
 
-def update_breaks(packages, binaries, options):
-    ''' Update the 'Breaks' fields for each binary package '''
+def get_group_version(source):
+    v = source['version']
+    version = Version(
+        '.'.join(v.upstream_version.split('.')[:2])
+    )
+    version.epoch = v.epoch
+    return version
+
+
+def process_packages(packages, binaries, options):
+    ''' Iterate over the source packages and update them '''
 
     def _get_version(source_name):
 
-        v = packages[source_name]['version']
-        version = Version(
-            '.'.join(v.upstream_version.split('.')[:2])
-        )
-        version.epoch = v.epoch
+        return get_group_version(packages[source_name])
 
-    # Package names of the updated ones
-    modified = []
-    simulate = options.no_act
+    def _get_breaks(source, binaries):
 
-    for source_name, source_package in packages.items():
         breaks = {}
-        for package, rdepends in source_package['rdepends'].items():
+
+        for package, rdepends in source['rdepends'].items():
             if not rdepends:
                 continue
             for rdepend in rdepends:
                 rdepend_version = _get_version(binaries[rdepend]['source'])
                 breaks.setdefault(package, []).append(
                     (rdepend, rdepend_version))
-        changes = update_control(source_package['path'], breaks, simulate)
+
+        return breaks
+
+    # Package names of the updated ones
+    modified = []
+    simulate = options.no_act
+
+    for source_name, source_package in packages.items():
+        breaks = _get_breaks(source_package, binaries)
+
+        changes = update_control(source_package['path'], breaks,
+                                 packages, binaries, options.depends, simulate)
+
         if changes:
             if not simulate:
                 commit(source_package['path'],
                        'Bump group breaks ({})'.format(_get_version(source_name)),
                        options)
             modified.append(source_name)
+
     return modified
 
 
@@ -359,7 +417,7 @@ def main():
 
     obtain_rdepends(packages, all_binaries, cache)
 
-    modified = update_breaks(packages, binaries, options)
+    modified = process_packages(packages, binaries, options)
 
     report(packages, modified, options.output)
 
