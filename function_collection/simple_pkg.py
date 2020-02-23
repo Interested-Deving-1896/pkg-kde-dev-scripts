@@ -1,0 +1,11 @@
+from functions import *
+checkGitStatus(pkg)
+#createGitignoreForFiles(pkg)
+prepareNewChangelogEntry(pkg)
+bumpStandardsVersion(pkg, Version("4.4.1"))
+updateVersion(pkg, Version("19.08.2-1~"))
+#updateVscToSalsa(pkg)
+#updateCopyrightFormat(pkg)
+#downloadTarball(pkg)
+#unpackTarball(pkg)
+#cmakeUpdateDeps(pkg)

@@ -1,0 +1,5 @@
+---
+basedir: BASEPATH_FOR_CHECKOUTS
+pkg-kde-jenkins: PATH_TO_pkg-kde-jenkins_CHECKOUT
+repopath: PATH_TO_LOCAL_REPO
+decopy: PATH_TO_cecopy_EXECUTABLE
