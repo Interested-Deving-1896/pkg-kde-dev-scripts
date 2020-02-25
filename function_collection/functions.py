@@ -499,7 +499,7 @@ def unpackTarball(pkg):
     tarball_path = pkg.path.parent/f"{pkg.upstreamName}-{cl.version.upstream_version}"
     if not tarball_path.exists() and tarball.exists():
         subprocess.call(['tar','-xaf', str(tarball)], cwd=pkg.path/"..")
-    if tarball_path.exists() and not tarball_path/"debian":
+    if tarball_path.exists() and not (tarball_path/"debian").exists():
         os.symlink(pkg.path/"debian", tarball_path/"debian")
 
 def updateSymbols(pkg, version, files=None):
