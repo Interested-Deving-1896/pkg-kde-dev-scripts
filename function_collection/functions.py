@@ -105,7 +105,7 @@ class Package:
 
     @property
     def dscPath(self):
-        return (self.path/".."/self.dscName).resolve()
+        return (self.path.parent/self.dscName).resolve()
 
     def controlParagraphs(self):
         control = self.path/"debian/control"
@@ -498,7 +498,7 @@ def unpackTarball(pkg):
     tarball = pkg.path.parent/f"{pkg.name}_{cl.version.upstream_version}.orig.tar.xz"
     tarball_path = pkg.path.parent/f"{pkg.upstreamName}-{cl.version.upstream_version}"
     if not tarball_path.exists() and tarball.exists():
-        subprocess.call(['tar','-xaf', str(tarball)], cwd=pkg.path/"..")
+        subprocess.call(['tar','-xaf', str(tarball)], cwd=pkg.path.parent)
     if tarball_path.exists() and not (tarball_path/"debian").exists():
         os.symlink(pkg.path/"debian", tarball_path/"debian")
 
