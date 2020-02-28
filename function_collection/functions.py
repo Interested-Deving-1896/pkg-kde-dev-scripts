@@ -336,7 +336,10 @@ def bumpCompat(pkg, compatlevel):
                     except StopIteration:
                         p = next(filter(lambda x:x[0]['name']=="debhelper-compat", rels))
 
-                    ac = int(p[0]['version'][1])
+                    _compatLevel = p[0]['version'][1]
+                    if _compatLevel.endswith("~"):
+                        _compatLevel = _compatLevel[:-1]
+                    ac = int(_compatLevel)
                     if ac == compatlevel:
                         return
                     if ac > compatlevel:
@@ -720,7 +723,7 @@ def createSymbolsFiles(pkg):
         for block in deb822.Deb822.iter_paragraphs(cf):
             if block.get("Package"):
                 name = block.get("Package")
-                m = re.match("(?P<libname>lib.*(?P<abi>[0-9]+))", name)
+                m = re.match(r"(?P<libname>lib.*?(?P<abi>[0-9]+(abi[0-9]+)?))$", name)
                 if m:
                     libname = m.groups('libname')[0]
                     abi = m.groups('abi')[1]
