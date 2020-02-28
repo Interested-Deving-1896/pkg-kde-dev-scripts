@@ -726,6 +726,8 @@ def createSymbolsFiles(pkg):
                 m = re.match(r"(?P<libname>lib.*?(?P<abi>[0-9]+(abi[0-9]+)?))$", name)
                 if m:
                     libname = m.groups('libname')[0]
+                    if libname == "libkf5":
+                        continue
                     abi = m.groups('abi')[1]
                     if not (pkg.path/f"debian/{libname}").exists():
                         with tempfile.TemporaryDirectory() as d:
