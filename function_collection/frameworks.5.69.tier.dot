@@ -1,0 +1,238 @@
+digraph frameworksTier {
+    node [shape=ellipse,fillcolor=darkgreen];
+  "kapidox";
+  "extra-cmake-modules";
+    node [shape=ellipse,fillcolor=white];
+  subgraph cluster_0 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 0";
+  "kapidox";
+  "extra-cmake-modules";
+  }
+  subgraph cluster_1 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 1";
+  "kcalcore";
+  "kidletime";
+  "kcodecs";
+  "networkmanager-qt";
+  "kdnssd";
+  "kwindowsystem";
+  "kdbusaddons";
+  "kqtquickcharts";
+  "solid";
+  "kwayland";
+  "karchive";
+  "oxygen-icons5";
+  "kitemmodels";
+  "prison";
+  "kitemviews";
+  "kholidays";
+  "modemmanager-qt";
+  "breeze-icons";
+  "kplotting";
+  "ki18n";
+  "kwidgetsaddons";
+  "attica";
+  "syntax-highlighting";
+  "bluez-qt";
+  "kcoreaddons";
+  "kguiaddons";
+  "kconfig";
+  "threadweaver";
+  "sonnet";
+  }
+  "extra-cmake-modules" -> "kcalcore";
+  "extra-cmake-modules" -> "kidletime";
+  "extra-cmake-modules" -> "kcodecs";
+  "extra-cmake-modules" -> "networkmanager-qt";
+  "extra-cmake-modules" -> "kdnssd";
+  "extra-cmake-modules" -> "kwindowsystem";
+  "extra-cmake-modules" -> "kdbusaddons";
+  "extra-cmake-modules" -> "kqtquickcharts";
+  "extra-cmake-modules" -> "solid";
+  "extra-cmake-modules" -> "kwayland";
+  "extra-cmake-modules" -> "karchive";
+  "extra-cmake-modules" -> "oxygen-icons5";
+  "extra-cmake-modules" -> "kitemmodels";
+  "extra-cmake-modules" -> "prison";
+  "extra-cmake-modules" -> "kitemviews";
+  "extra-cmake-modules" -> "kholidays";
+  "extra-cmake-modules" -> "modemmanager-qt";
+  "extra-cmake-modules" -> "breeze-icons";
+  "extra-cmake-modules" -> "kplotting";
+  "extra-cmake-modules" -> "ki18n";
+  "extra-cmake-modules" -> "kwidgetsaddons";
+  "extra-cmake-modules" -> "attica";
+  "extra-cmake-modules" -> "syntax-highlighting";
+  "extra-cmake-modules" -> "bluez-qt";
+  "extra-cmake-modules" -> "kcoreaddons";
+  "extra-cmake-modules" -> "kguiaddons";
+  "extra-cmake-modules" -> "kconfig";
+  "extra-cmake-modules" -> "threadweaver";
+  "extra-cmake-modules" -> "sonnet";
+  subgraph cluster_2 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 2";
+  "kdoctools";
+  "kimageformats";
+  "kjobwidgets";
+  "kfilemetadata";
+  "knotifications";
+  "syndication";
+  "kcontacts";
+  "kcompletion";
+  "kcrash";
+  "kunitconversion";
+  "kauth";
+  "kpty";
+  }
+  "ki18n" -> "kdoctools";
+  "karchive" -> "kdoctools";
+  "karchive" -> "kimageformats";
+  "kcoreaddons" -> "kjobwidgets";
+  "kwidgetsaddons" -> "kjobwidgets";
+  "kcoreaddons" -> "kfilemetadata";
+  "ki18n" -> "kfilemetadata";
+  "karchive" -> "kfilemetadata";
+  "kcoreaddons" -> "knotifications";
+  "kcodecs" -> "knotifications";
+  "kwindowsystem" -> "knotifications";
+  "kconfig" -> "knotifications";
+  "kcodecs" -> "syndication";
+  "kcodecs" -> "kcontacts";
+  "kcoreaddons" -> "kcontacts";
+  "ki18n" -> "kcontacts";
+  "kconfig" -> "kcontacts";
+  "kconfig" -> "kcompletion";
+  "kwidgetsaddons" -> "kcompletion";
+  "kcoreaddons" -> "kcrash";
+  "kwindowsystem" -> "kcrash";
+  "ki18n" -> "kunitconversion";
+  "kcoreaddons" -> "kauth";
+  "kcoreaddons" -> "kpty";
+  "ki18n" -> "kpty";
+  subgraph cluster_3 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 3";
+  "kconfigwidgets";
+  "kpackage";
+  "kservice";
+  }
+  "kdoctools" -> "kconfigwidgets";
+  "kauth" -> "kconfigwidgets";
+  "kdoctools" -> "kpackage";
+  "kcrash" -> "kservice";
+  "kdoctools" -> "kservice";
+  subgraph cluster_4 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 4";
+  "kemoticons";
+  "kdesu";
+  "kglobalaccel";
+  "kpeople";
+  "kiconthemes";
+  }
+  "kservice" -> "kemoticons";
+  "kservice" -> "kdesu";
+  "kservice" -> "kglobalaccel";
+  "kservice" -> "kpeople";
+  "kconfigwidgets" -> "kiconthemes";
+  subgraph cluster_5 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 5";
+  "ktextwidgets";
+  "kwallet";
+  }
+  "kiconthemes" -> "ktextwidgets";
+  "kiconthemes" -> "kwallet";
+  subgraph cluster_6 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 6";
+  "kxmlgui";
+  }
+  "ktextwidgets" -> "kxmlgui";
+  subgraph cluster_7 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 7";
+  "kbookmarks";
+  }
+  "kxmlgui" -> "kbookmarks";
+  subgraph cluster_8 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 8";
+  "kio";
+  }
+  "kbookmarks" -> "kio";
+  subgraph cluster_9 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 9";
+  "kparts";
+  "kxmlrpcclient";
+  "knotifyconfig";
+  "knewstuff";
+  "kinit";
+  "kdeclarative";
+  "baloo";
+  }
+  "kio" -> "kparts";
+  "kio" -> "kxmlrpcclient";
+  "kio" -> "knotifyconfig";
+  "kio" -> "knewstuff";
+  "kio" -> "kinit";
+  "kio" -> "kdeclarative";
+  "kio" -> "baloo";
+  subgraph cluster_10 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 10";
+  "kded";
+  "ktexteditor";
+  "kcmutils";
+  "frameworkintegration";
+  "kirigami2";
+  }
+  "kinit" -> "kded";
+  "kparts" -> "ktexteditor";
+  "kdeclarative" -> "kcmutils";
+  "knewstuff" -> "frameworkintegration";
+  "kdeclarative" -> "kirigami2";
+  subgraph cluster_11 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 11";
+  "purpose";
+  "kactivities";
+  "qqc2-desktop-style";
+  }
+  "kirigami2" -> "purpose";
+  "kcmutils" -> "purpose";
+  "kcmutils" -> "kactivities";
+  "kirigami2" -> "qqc2-desktop-style";
+  subgraph cluster_12 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 12";
+  "plasma-framework";
+  "kactivities-stats";
+  }
+  "kactivities" -> "plasma-framework";
+  "kactivities" -> "kactivities-stats";
+  subgraph cluster_13 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 13";
+  "krunner";
+  }
+  "plasma-framework" -> "krunner";
+}
