@@ -1309,6 +1309,65 @@ def updateSalsaCI(pkg):
     pkg.git.index.commit(msg)
 
 
+def getRidOfDebugSymbolPacakge(pkg):
+    if not pkg.readyForChanges:
+        print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
+        return -1
+
+    rules = pkg.path/"debian/rules"
+
+    m = re.search(r"--dbgsym-migration\s*=\s*['\"].*?\(<=\s*(.*)\)['\"]", rules.read_text())
+
+    if m:
+        migration_version = m.group(1)
+        for block in pkg.controlParagraphs():
+             if block.get('Package','').endswith("-dev"):
+                a_pkg = apt_cache[block.get('Package')]
+                stable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "stable"] for v in a_pkg.version_list))
+                if Version(stable.ver_str) < Version(m.group(1)):
+                    return
+                break
+        text = re.sub(rf"\n\s*\noverride_dh_strip:\s*\n\s*dh_strip {re.escape(m.group(0))}\s*\n","\n", rules.read_text())
+
+        rules.write_text(text)
+        msg = "Get rid of debug-symbol-migration package."
+        addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
+        pkg.git.index.add(["debian/rules",
+                           "debian/changelog",
+                          ])
+        pkg.git.index.commit(msg)
+
+
+def rulesRequireRoot(pkg):
+    if not pkg.readyForChanges:
+        print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
+        return -1
+
+    control = pkg.path/"debian/control"
+
+    with tempfile.NamedTemporaryFile() as tmpfile:
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                if block.get('Rules-Requires-Root', None) == "no":
+                    return
+                block['Rules-Requires-Root'] = "no"
+                block.dump(tmpfile)
+                continue
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
+        tmpfile.flush()
+        shutil.copyfile(tmpfile.name, control)
+        wrap_and_sort(pkg, "debian/control")
+
+    msg = "Add Rules-Requires-Root field to control."
+    addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
+    pkg.git.index.add(["debian/changelog",
+                       "debian/control",
+                      ])
+    pkg.git.index.commit(msg)
+
+
+
 def includePkgInRepo(pkg):
     name = pkg.dscPath.stem + "_amd64.changes"
     path = pkg.dscPath.with_name(name)
