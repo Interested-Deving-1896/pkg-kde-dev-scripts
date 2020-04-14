@@ -1130,7 +1130,6 @@ def updateEpochInSymbols(pkg):
 def updateCopyrightFormat(pkg):
     msg = "Use secure copyright format uri."
     c = copyright.Copyright((pkg.path/"debian/copyright").open())
-    print(c.header.format)
     if c.header.format == "http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/":
         c.header.format="https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/"
         (pkg.path/"debian/copyright").write_text(c.dump())
