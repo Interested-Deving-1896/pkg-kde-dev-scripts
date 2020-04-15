@@ -1384,7 +1384,7 @@ def getRidOfDebugSymbolPacakge(pkg):
                 if Version(stable.ver_str) < Version(m.group(1)):
                     return
                 break
-        text = re.sub(rf"\n\s*\noverride_dh_strip:\s*\n\s*dh_strip {re.escape(m.group(0))}\s*\n","\n", rules.read_text())
+        text = re.sub(rf"\n\s*\noverride_dh_strip:\s*\n\s*.* {re.escape(m.group(0))}\s*\n","\n", rules.read_text())
 
         rules.write_text(text)
         msg = "Get rid of debug-symbol-migration package."
