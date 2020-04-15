@@ -751,6 +751,64 @@ def createSymbolsFiles(pkg):
                                 "-v", version,
                                 str(pd/'symbols.amd64')], cwd=pkg.path)
 
+def addMissingDependsPackageField(package):
+    devPackage = ""
+    failure = False
+    libraries = []
+    for block in package.controlParagraphs():
+        name = block.get("Package")
+        if not name:
+            continue
+
+        m = re.match(r"(?P<libname>lib.*?(?P<abi>[0-9]+(abi[0-9]+)?))$", name)
+        if m:
+            libname = m.groups('libname')[0]
+            if libname == "libkf5":
+                continue
+            libraries.append(libname)
+        elif name.endswith("-dev"):
+            if devPackage:
+                print(f'Muliple -dev packages found. Giving up: {devPackage}, {name}')
+                failure = True
+            devPackage = name
+
+    if not devPackage:
+        print('No devPacakge found. Gving up.')
+        failure = True
+
+    if failure:
+        return sys.exit(-2)
+
+    changed = False
+    addFiles = []
+    for libname in libraries:
+        symbolsFile = f"debian/{libname}.symbols"
+        symbolsPath = package.path/symbolsFile
+        if not symbolsPath.exists():
+            print(f"Error: Can't find symbols file for {libname}.")
+            continue
+        text = symbolsPath.read_text()
+        changedFile = False
+        for m in re.finditer(r"(\n[^\s].*?#MINVER#.*?\n)([^\n]*?\n)", text):
+            if m.group(2) == f"* Build-Depends-Package: {devPackage}\n":
+                continue
+            changedFile = True
+            text = text.replace(m.group(0), f"{m.group(1)}* Build-Depends-Package: {devPackage}\n{m.group(2)}")
+        if changedFile:
+            changed = True
+            symbolsPath.write_text(text)
+            addFiles.append(symbolsFile)
+
+    if not changed:
+        return
+
+    msg = f"Add Build-Depends-Package to symbols file."
+    addChangeForMainatiner(package, f'  * {msg}', os.environ['DEBFULLNAME'])
+    addFiles.append("debian/changelog")
+    package.git.index.add(addFiles)
+    package.git.index.commit(msg)
+
+
 def getLintian(pkg, tmpfile=None):
     fpath = pathlib.Path('/var/www/build/')/(pkg.dscPath.stem+"_amd64.build")
     try:
