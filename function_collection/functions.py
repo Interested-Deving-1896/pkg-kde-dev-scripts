@@ -520,11 +520,11 @@ def updateSymbols(pkg, version, files=None):
     cmd = ['pkgkde-symbolshelper', 'batchpatch', '-v', version, *files]
     if subprocess.call(cmd, cwd=pkg.path) != 0:
         print("Appying from patches failed (see above).")
-    #    if dirName:
-    #        shutil.rmtree(pkg.path/dirName)
+        if dirName:
+            shutil.rmtree(pkg.path/dirName)
         return -2
-    #if dirName:
-    #    shutil.rmtree(pkg.path/dirName)
+    if dirName:
+        shutil.rmtree(pkg.path/dirName)
     list(map(os.remove, glob.glob(str(pkg.path/"*.orig"))))
     addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
     pkg.git.index.add(["debian"])
