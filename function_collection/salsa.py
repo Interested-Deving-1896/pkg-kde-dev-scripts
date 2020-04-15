@@ -81,8 +81,11 @@ def getLintianPath(pkg):
     name = pkg.path.name
     status_data = workdir.get(f"status/{name}", {})
     lintian = status_data.get('lintian',{}).get('status', None)
+
     if lintian and lintian != "running":
-        return pathlib.Path(logcache/f"{status_data['lintian']['id']}/lintian")
+        path = pathlib.Path(logcache/f"{status_data['lintian']['id']}/lintian")
+        if path.read_text():
+            return path
 
     project = getProject(name)
     pipeline_id = status_data.get('pipeline',{})
@@ -92,7 +95,7 @@ def getLintianPath(pkg):
             job = project.jobs.get(j.id)
             path = pathlib.Path(logcache/f"{j.id}/lintian")
             job_status = status_data.get('lintian',{}).get('status', None)
-            if not path.exists() or job_status == "running":
+            if not path.exists() or job_status == "running" or not path.read_text():
                 path.parent.mkdir(exist_ok=True)
                 path.write_bytes(job.trace())
             status_data['lintian'] = {'id': j.id, 'status': job.status}
