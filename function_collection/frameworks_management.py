@@ -1,4 +1,5 @@
 from functions import *
+import salsa
 
 kdedir = basedir/"kde"
 
