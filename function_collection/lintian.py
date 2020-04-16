@@ -1,5 +1,9 @@
-from frameworks_management import *
+import frameworks_management
+import pim_management
 import salsa
+
+import itertools
+import sys
 
 IGNORE = ["changelog-should-mention-nmu", "source-nmu-has-incorrect-version-number", "extended-description-is-probably-too-short", "upstream-metadata-missing-bug-tracking", "copyright-refers-to-symlink-license usr/share/common-licenses/GPL", "testsuite-autopkgtest-missing", "spelling-error-in-binary", "duplicate-short-description", "description-synopsis-might-not-be-phrased-properly", "duplicate-long-description"]
 
@@ -9,14 +13,40 @@ def ignore(element):
             return True
     return False
 
-tier = int(sys.argv[1])
+product = sys.argv[1]
+tier = sys.argv[2]
 
-for pkg in tiers[tier]:
+if product == "frameworks":
+    tiers = frameworks_management.tiers
+elif product == "kdepim":
+    tiers = pim_management.tiers
+else:
+    print("Unknown product.")
+    sys.exit(-2)
+
+if ":" in tier:
+    _mn,_mx = tier.split(":")
+    if _mn:
+        _min = int(_mn)
+    else:
+        _min = None
+
+    if _mx:
+        _max = int(_mx)
+    else:
+        _max = None
+    packages = itertools.chain(*tiers[_min:_max])
+else:
+    packages = tiers[int(tier)]
+
+for pkg in packages:
     try:
         lintian = salsa.getLintian(pkg)
     except AttributeError:
         status = salsa.workdir.get(f"status/{pkg.path.name}", {})
-        print(f"SKIPPING - {pkg.name} ({status['job']['status']},{status['lintian']['status']})")
+        job_status = status.get('job',{'status':'unknown'})
+        lintian_status = status.get('lintian',{'status':'unknown'})
+        print(f"SKIPPING - {pkg.name} ({job_status['status']},{lintian_status['status']})")
         continue
     interessting = [i for i in lintian if not ignore(i)]
     if interessting:

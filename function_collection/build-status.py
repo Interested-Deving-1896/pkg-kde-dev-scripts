@@ -14,6 +14,7 @@ import pathlib
 import pydot
 import re
 import sys
+import subprocess
 
 from functions import basedir, getPackage
 import salsa
@@ -62,6 +63,7 @@ STATUS={"waiting":"blue",
 
 fname = f"{product}.{version}.tier.dot"
 buildname = f"{product}.{version}.tier.status.dot"
+pngname = f"{product}.{version}.tier.status.png"
 curdir = pathlib.Path(__file__).parent
 
 graph = pydot.graph_from_dot_file(curdir/fname)[0]
@@ -69,7 +71,7 @@ graph = pydot.graph_from_dot_file(curdir/fname)[0]
 kdedir = basedir/"kde"
 
 #Read tier data
-packages=set()
+packages = set()
 for subgraph in graph.get_subgraph_list():
     for node in subgraph.get_nodes():
         pkg_name = node.get_name()[1:-1]
@@ -101,3 +103,4 @@ for status in statuses:
         graph.add_node(n)
 
 graph.write(curdir/buildname)
+subprocess.check_call(["dot", "-T","png", "-o", pngname, buildname], cwd=curdir)
