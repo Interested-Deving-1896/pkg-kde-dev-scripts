@@ -119,6 +119,25 @@ class Package:
             if block.get("Source"):
                 return Version(block['Standards-Version'])
 
+    @property
+    def upstreamVersion(self):
+        return self.changelog.version.upstream_version
+
+    @property
+    def sourceName(self):
+        for block in self.controlParagraphs():
+            if block.get("Source"):
+                return block.get("Source")
+
+    @property
+    def unpackPath(self):
+        path = self.path.with_name(f"{self.sourceName}-{self.upstreamVersion}")
+        if not path.exists():
+            path = self.path.with_name(f'{self.name}-{self.upstreamVersion}')
+            if not path.exists():
+                path = self.path.with_name(f'{self.path.name}-{self.upstreamVersion}')
+        return path
+
     def dpkgBuildpackage(self):
         self.call("dpkg-buildpackage", "-S", "-d")
 
@@ -465,7 +484,7 @@ def cmakeUpdateDeps(pkg):
     version= cl.versions[0]
     cmd = [os.path.join(CONFIG['pkg-kde-jenkins'],'hooks/prepare/cmake_update_deps'),
           "-d", str(pkg.path),
-          "-u", f"{pkg.path}-{version.upstream_version}"]
+          "-u", pkg.unpackPath]
     ret = subprocess.call(cmd, cwd=pkg.path)
     if ret == 0:
         commit = pkg.git.head.commit
@@ -485,7 +504,7 @@ def decopy(pkg):
            "--copyright-file", f"{pkg.path/'debian/copyright'}",
            "-o", f"{pkg.path/'debian/copyright'}"
           ]
-    return subprocess.call(cmd, cwd=f"{pkg.path}-{version.upstream_version}")
+    return subprocess.call(cmd, cwd=pkg.unpackPath)
 
 def getBuildlogs(pkg):
     return subprocess.call(['pkgkde-getbuildlogs'], cwd=pkg.path)
@@ -499,9 +518,9 @@ def downloadTarball(pkg):
 def unpackTarball(pkg):
     cl = pkg.changelog
     tarball = pkg.path.parent/f"{pkg.name}_{cl.version.upstream_version}.orig.tar.xz"
-    tarball_path = pkg.path.parent/f"{pkg.upstreamName}-{cl.version.upstream_version}"
-    if not tarball_path.exists() and tarball.exists():
+    if not pkg.unpackPath.exists() and tarball.exists():
         subprocess.call(['tar','-xaf', str(tarball)], cwd=pkg.path.parent)
+    tarball_path = pkg.unpackPath
     if tarball_path.exists() and not (tarball_path/"debian").exists():
         os.symlink(pkg.path/"debian", tarball_path/"debian")
 
@@ -653,7 +672,7 @@ def bumpABI(pkg, libname):
         include(/usr/share/pkg-kde-tools/cmake/DebianABIManager.cmake)
         EOF
         """
-        tarball_path = pkg.path.parent/f"{pkg.upstreamName}-{pkg.changelog.version.upstream_version}"
+        tarball_path = pkg.unpackPath
         if tarball_path.exists():
             if not (tarball_path/"debian").exists():
                 os.symlink(pkg.path/"debian", tarball_path/"debian")
