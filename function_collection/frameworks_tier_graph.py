@@ -23,6 +23,7 @@ version = sys.argv[1]
 REPLACE = {
         "kcalendarcore": "kcalcore",
         "kquickcharts": "kqtquickcharts",
+        "kirigami2": "kirigami",
 }
 
 r = requests.get(f"https://download.kde.org/stable/frameworks/{version}/")
