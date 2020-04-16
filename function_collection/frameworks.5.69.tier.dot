@@ -2,16 +2,18 @@ digraph frameworksTier {
   node [shape=diamond,fillcolor=lightblue,style=filled];
   "baloo";
   "bluez-qt";
-  "breeze-icons";
   "frameworkintegration";
   "kactivities-stats";
   "kcalcore";
   "kcontacts";
   "kded";
+  "kdesu";
   "kdnssd";
   "kemoticons";
   "kholidays";
   "kimageformats";
+  "kinit";
+  "kitemmodels";
   "knotifyconfig";
   "kpeople";
   "kplotting";
@@ -103,6 +105,7 @@ digraph frameworksTier {
     style=filled;
     color=lightgrey;
     label = "Tier 2";
+    "kactivities";
     "kauth";
     "kcompletion";
     "kcontacts";
@@ -116,27 +119,30 @@ digraph frameworksTier {
     "kunitconversion";
     "syndication";
   }
+  "kcoreaddons" -> "kactivities";
+  "kconfig" -> "kactivities";
+  "kwindowsystem" -> "kactivities";
   "kcoreaddons" -> "kauth";
-  "kconfig" -> "kcompletion";
   "kwidgetsaddons" -> "kcompletion";
+  "kconfig" -> "kcompletion";
+  "kcoreaddons" -> "kcontacts";
   "kcodecs" -> "kcontacts";
   "kconfig" -> "kcontacts";
   "ki18n" -> "kcontacts";
-  "kcoreaddons" -> "kcontacts";
   "kcoreaddons" -> "kcrash";
   "kwindowsystem" -> "kcrash";
   "karchive" -> "kdoctools";
   "ki18n" -> "kdoctools";
-  "karchive" -> "kfilemetadata";
   "kcoreaddons" -> "kfilemetadata";
+  "karchive" -> "kfilemetadata";
   "ki18n" -> "kfilemetadata";
   "karchive" -> "kimageformats";
   "kcoreaddons" -> "kjobwidgets";
   "kwidgetsaddons" -> "kjobwidgets";
-  "kcodecs" -> "knotifications";
-  "kwindowsystem" -> "knotifications";
   "kcoreaddons" -> "knotifications";
+  "kcodecs" -> "knotifications";
   "kconfig" -> "knotifications";
+  "kwindowsystem" -> "knotifications";
   "kcoreaddons" -> "kpty";
   "ki18n" -> "kpty";
   "ki18n" -> "kunitconversion";
@@ -145,12 +151,16 @@ digraph frameworksTier {
     style=filled;
     color=lightgrey;
     label = "Tier 3";
+    "kactivities-stats";
     "kconfigwidgets";
+    "kglobalaccel";
     "kpackage";
     "kservice";
   }
-  "kdoctools" -> "kconfigwidgets";
+  "kactivities" -> "kactivities-stats";
   "kauth" -> "kconfigwidgets";
+  "kdoctools" -> "kconfigwidgets";
+  "kcrash" -> "kglobalaccel";
   "kdoctools" -> "kpackage";
   "kdoctools" -> "kservice";
   "kcrash" -> "kservice";
@@ -158,16 +168,18 @@ digraph frameworksTier {
     style=filled;
     color=lightgrey;
     label = "Tier 4";
+    "kded";
     "kdesu";
     "kemoticons";
-    "kglobalaccel";
     "kiconthemes";
+    "kirigami";
     "kpeople";
   }
+  "kservice" -> "kded";
   "kservice" -> "kdesu";
   "kservice" -> "kemoticons";
-  "kservice" -> "kglobalaccel";
   "kconfigwidgets" -> "kiconthemes";
+  "kpackage" -> "kirigami";
   "kservice" -> "kpeople";
   subgraph cluster_5 {
     style=filled;
@@ -175,34 +187,32 @@ digraph frameworksTier {
     label = "Tier 5";
     "ktextwidgets";
     "kwallet";
+    "kxmlgui";
+    "qqc2-desktop-style";
   }
   "kiconthemes" -> "ktextwidgets";
   "kiconthemes" -> "kwallet";
+  "kiconthemes" -> "kxmlgui";
+  "kirigami" -> "qqc2-desktop-style";
+  "kiconthemes" -> "qqc2-desktop-style";
   subgraph cluster_6 {
     style=filled;
     color=lightgrey;
     label = "Tier 6";
-    "kxmlgui";
+    "kbookmarks";
   }
-  "ktextwidgets" -> "kxmlgui";
+  "kxmlgui" -> "kbookmarks";
   subgraph cluster_7 {
     style=filled;
     color=lightgrey;
     label = "Tier 7";
-    "kbookmarks";
+    "kio";
   }
-  "kxmlgui" -> "kbookmarks";
+  "kbookmarks" -> "kio";
   subgraph cluster_8 {
     style=filled;
     color=lightgrey;
     label = "Tier 8";
-    "kio";
-  }
-  "kbookmarks" -> "kio";
-  subgraph cluster_9 {
-    style=filled;
-    color=lightgrey;
-    label = "Tier 9";
     "baloo";
     "kdeclarative";
     "kinit";
@@ -218,49 +228,29 @@ digraph frameworksTier {
   "kio" -> "knotifyconfig";
   "kio" -> "kparts";
   "kio" -> "kxmlrpcclient";
+  subgraph cluster_9 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 9";
+    "frameworkintegration";
+    "kcmutils";
+    "kqtquickcharts";
+    "ktexteditor";
+    "plasma-framework";
+  }
+  "knewstuff" -> "frameworkintegration";
+  "kdeclarative" -> "kcmutils";
+  "kdeclarative" -> "kqtquickcharts";
+  "kparts" -> "ktexteditor";
+  "kdeclarative" -> "plasma-framework";
+  "kparts" -> "plasma-framework";
   subgraph cluster_10 {
     style=filled;
     color=lightgrey;
     label = "Tier 10";
-    "frameworkintegration";
-    "kcmutils";
-    "kded";
-    "kirigami2";
-    "ktexteditor";
-  }
-  "knewstuff" -> "frameworkintegration";
-  "kdeclarative" -> "kcmutils";
-  "kinit" -> "kded";
-  "kdeclarative" -> "kirigami2";
-  "kparts" -> "ktexteditor";
-  subgraph cluster_11 {
-    style=filled;
-    color=lightgrey;
-    label = "Tier 11";
-    "kactivities";
-    "kqtquickcharts";
-    "purpose";
-    "qqc2-desktop-style";
-  }
-  "kcmutils" -> "kactivities";
-  "kirigami2" -> "kqtquickcharts";
-  "kcmutils" -> "purpose";
-  "kirigami2" -> "purpose";
-  "kirigami2" -> "qqc2-desktop-style";
-  subgraph cluster_12 {
-    style=filled;
-    color=lightgrey;
-    label = "Tier 12";
-    "kactivities-stats";
-    "plasma-framework";
-  }
-  "kactivities" -> "kactivities-stats";
-  "kactivities" -> "plasma-framework";
-  subgraph cluster_13 {
-    style=filled;
-    color=lightgrey;
-    label = "Tier 13";
     "krunner";
+    "purpose";
   }
   "plasma-framework" -> "krunner";
+  "kcmutils" -> "purpose";
 }
