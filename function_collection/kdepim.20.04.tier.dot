@@ -1,0 +1,189 @@
+digraph pimTier {
+    node [shape=diamond,fillcolor=lightblue,style=filled];
+  "kdepim-addons";
+  "kleopatra";
+  "kontact";
+  "akonadi-calendar-tools";
+  "kmail-account-wizard";
+  "kdepim-runtime";
+  "pim-data-exporter";
+  "knotes";
+  "kaddressbook";
+  "mbox-importer";
+  "korganizer";
+  "akonadiconsole";
+  "akregator";
+  "pim-sieve-editor";
+  "kmail";
+  "kalarm";
+  "grantlee-editor";
+    node [shape=ellipse,fillcolor=darkgreen];
+  "akonadi";
+  "grantleetheme";
+  "kpkpass";
+  "kblog";
+  "kontactinterface";
+  "libkgapi";
+  "kpimtextedit";
+  "kdav";
+  "kldap";
+  "kmime";
+    node [shape=ellipse,fillcolor=white];
+  subgraph cluster_0 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 0";
+  "akonadi";
+  "grantleetheme";
+  "kpkpass";
+  "kblog";
+  "kontactinterface";
+  "libkgapi";
+  "kpimtextedit";
+  "kdav";
+  "kldap";
+  "kmime";
+  }
+  subgraph cluster_1 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 1";
+  "akonadi-contacts";
+  "libkleo";
+  "kmbox";
+  "kimap";
+  "akonadi-mime";
+  "kitinerary";
+  "ksmtp";
+  "akonadi-notes";
+  "kidentitymanagement";
+  }
+  "akonadi" -> "akonadi-contacts" ;
+  "kmime" -> "akonadi-contacts" ;
+  "kpimtextedit" -> "libkleo" ;
+  "kmime" -> "kmbox" ;
+  "kmime" -> "kimap" ;
+  "akonadi" -> "akonadi-mime" ;
+  "kmime" -> "akonadi-mime" ;
+  "kpkpass" -> "kitinerary" ;
+  "kmime" -> "kitinerary" ;
+  "kmime" -> "ksmtp" ;
+  "akonadi" -> "akonadi-notes" ;
+  "kmime" -> "akonadi-notes" ;
+  "kpimtextedit" -> "kidentitymanagement" ;
+  subgraph cluster_2 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 2";
+  "kleopatra";
+  "kmailtransport";
+  "akonadi-search";
+  "kcalutils";
+  }
+  "libkleo" -> "kleopatra" ;
+  "ksmtp" -> "kmailtransport" ;
+  "akonadi-mime" -> "kmailtransport" ;
+  "akonadi-mime" -> "akonadi-search" ;
+  "kidentitymanagement" -> "kcalutils" ;
+  subgraph cluster_3 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 3";
+  "libkdepim";
+  "ktnef";
+  "akonadi-calendar";
+  "kalarmcal";
+  }
+  "akonadi-search" -> "libkdepim" ;
+  "kcalutils" -> "ktnef" ;
+  "kmailtransport" -> "akonadi-calendar" ;
+  "kcalutils" -> "akonadi-calendar" ;
+  "kcalutils" -> "kalarmcal" ;
+  subgraph cluster_4 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 4";
+  "pimcommon";
+  "mailimporter";
+  }
+  "libkdepim" -> "pimcommon" ;
+  "libkdepim" -> "mailimporter" ;
+  subgraph cluster_5 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 5";
+  "kmail-account-wizard";
+  "kdepim-runtime";
+  "knotes";
+  "libgravatar";
+  "kdepim-apps-libs";
+  "libksieve";
+  }
+  "pimcommon" -> "kmail-account-wizard" ;
+  "pimcommon" -> "kdepim-runtime" ;
+  "pimcommon" -> "knotes" ;
+  "pimcommon" -> "libgravatar" ;
+  "pimcommon" -> "kdepim-apps-libs" ;
+  "pimcommon" -> "libksieve" ;
+  subgraph cluster_6 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 6";
+  "calendarsupport";
+  "messagelib";
+  "kaddressbook";
+  "kontact";
+  "pim-sieve-editor";
+  }
+  "kdepim-apps-libs" -> "calendarsupport" ;
+  "kdepim-apps-libs" -> "messagelib" ;
+  "libgravatar" -> "messagelib" ;
+  "kdepim-apps-libs" -> "kaddressbook" ;
+  "kdepim-apps-libs" -> "kontact" ;
+  "libksieve" -> "pim-sieve-editor" ;
+  subgraph cluster_7 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 7";
+  "mailcommon";
+  "eventviews";
+  "akonadiconsole";
+  "akregator";
+  "akonadi-calendar-tools";
+  "grantlee-editor";
+  }
+  "messagelib" -> "mailcommon" ;
+  "calendarsupport" -> "eventviews" ;
+  "messagelib" -> "akonadiconsole" ;
+  "calendarsupport" -> "akonadiconsole" ;
+  "messagelib" -> "akregator" ;
+  "calendarsupport" -> "akonadi-calendar-tools" ;
+  "messagelib" -> "grantlee-editor" ;
+  subgraph cluster_8 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 8";
+  "incidenceeditor";
+  "pim-data-exporter";
+  "mbox-importer";
+  "akonadi-import-wizard";
+  "kmail";
+  "kalarm";
+  }
+  "eventviews" -> "incidenceeditor" ;
+  "mailcommon" -> "pim-data-exporter" ;
+  "mailcommon" -> "mbox-importer" ;
+  "mailcommon" -> "akonadi-import-wizard" ;
+  "mailcommon" -> "kmail" ;
+  "mailcommon" -> "kalarm" ;
+  subgraph cluster_9 {
+     style=filled;
+     color=lightgrey;
+     label = "Tier 9";
+  "korganizer";
+  "kdepim-addons";
+  }
+  "incidenceeditor" -> "korganizer" ;
+  "incidenceeditor" -> "kdepim-addons" ;
+  "akonadi-import-wizard" -> "kdepim-addons" ;
+}
