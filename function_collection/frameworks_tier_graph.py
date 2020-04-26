@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from bs4 import BeautifulSoup
 import copy
 from debian import deb822
@@ -6,6 +7,7 @@ import os
 import pathlib
 import requests
 import sys
+import subprocess
 import yaml
 
 from dot import TierGraph
@@ -26,14 +28,23 @@ REPLACE = {
         "kirigami2": "kirigami",
 }
 
-r = requests.get(f"https://download.kde.org/stable/frameworks/{version}/")
-soup = BeautifulSoup(r.text, features="lxml")
+def get_framework(version):
+    r = requests.get(f"https://download.kde.org/stable/frameworks/{version}/")
+    soup = BeautifulSoup(r.text, features="lxml")
+    for a in soup.find_all('a'):
+        if a['href'].endswith('.tar.xz'):
+            yield a
+    r = requests.get(f"https://download.kde.org/stable/frameworks/{version}/portingAids/")
+    soup = BeautifulSoup(r.text, features="lxml")
+    for a in soup.find_all('a'):
+        if a['href'].endswith('.tar.xz'):
+            yield a
+
 
 frameworks = set()
 
-for a in soup.find_all('a'):
-    if a['href'].endswith('.tar.xz'):
-        frameworks.add('-'.join(a.text.split('-')[:-1]))
+for a in get_framework(version):
+    frameworks.add('-'.join(a.text.split('-')[:-1]))
 
 for framework in frameworks:
     framework = REPLACE.get(framework, framework)
@@ -75,6 +86,8 @@ for framework in frameworks:
     graph[framework] = sDepends
 
 dotfile = curdir/f"frameworks.{version}.tier.dot"
+pngname = curdir/f"frameworks.{version}.tier.png"
 
 t = TierGraph(graph)
 dotfile.write_text(t.createGraph("frameworksTier"))
+subprocess.check_call(["dot", "-T","png", "-o", pngname, dotfile], cwd=curdir)
