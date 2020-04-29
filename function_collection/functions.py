@@ -487,7 +487,7 @@ def listMissingSymbolsfiles(pkg):
         for block in deb822.Deb822.iter_paragraphs(cf):
             if block.get('Package'):
                 if re.match(r'^lib.*[0-9]$', block.get('Package')):
-                    if not (p.path/f"debian/{block.get('Package')}.symbols").exists():
+                    if not (pkg.path/f"debian/{block.get('Package')}.symbols").exists():
                         l.append(block.get('Package'))
     return l
 
