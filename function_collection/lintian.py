@@ -15,6 +15,7 @@ IGNORE = ["changelog-should-mention-nmu",
         "duplicate-short-description",
         "description-synopsis-might-not-be-phrased-properly",
         "duplicate-long-description",
+        "package-uses-experimental-debhelper-compat-version",
 ]
 
 def ignore(element):
