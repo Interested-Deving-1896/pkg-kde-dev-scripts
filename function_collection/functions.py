@@ -1378,6 +1378,10 @@ def updateSalsaCI(pkg):
     if not pkg.readyForChanges:
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
         return -1
+    addAnycase = False
+    if not (pkg.path/"debian/salsa").exists() or not (pkg.path/"debian/salsa-ci.yml").exists():
+        addAnycase = True
+
     salsaci = pathlib.Path(os.path.join(os.path.dirname(__file__),'salsaci'))
     shutil.rmtree(pkg.path/"debian/salsa", ignore_errors=True)
     shutil.copytree(salsaci, pkg.path/"debian", dirs_exist_ok=True)
@@ -1386,7 +1390,8 @@ def updateSalsaCI(pkg):
         if d.a_path.startswith("debian/salsa"):
             break
     else:
-        return
+        if not addAnycase:
+            return
 
     msg = "enable team builder to be able to build on salsa."
     pkg.git.index.add(["debian/salsa",
