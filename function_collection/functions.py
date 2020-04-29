@@ -93,19 +93,31 @@ class Package:
         return changelog.Changelog(open(self.path/'debian/changelog'), encoding="utf-8")
 
     @property
+    def version(self) -> Version:
+        return self.changelog.version
+
+    @property
+    def upstream_version(self) -> str:
+        return self.version.upstream_version
+
+    @property
     def readyForChanges(self):
         return not self.dirty and self.changelog.distributions == "UNRELEASED"
 
     @property
-    def dscName(self):
-        version = self.changelog.version
+    def dscName(self) -> str:
+        version = self.version
         if version.epoch:
             version.epoch = None
         return f"{self.changelog.package}_{version}.dsc"
 
     @property
-    def dscPath(self):
-        return (self.path.parent/self.dscName).resolve()
+    def dscPath(self) -> pathlib.Path:
+        return self.path.with_name(self.dscName)
+
+    @property
+    def tarball_path(self) -> pathlib.Path:
+        return self.path.with_name(f"{self.name}_{self.upstream_version}.orig.tar.xz")
 
     def controlParagraphs(self):
         control = self.path/"debian/control"
@@ -510,14 +522,12 @@ def getBuildlogs(pkg):
     return subprocess.call(['pkgkde-getbuildlogs'], cwd=pkg.path)
 
 def downloadTarball(pkg):
-    cl = pkg.changelog
-    tarball = pkg.path.parent/f"{pkg.name}_{cl.version.upstream_version}.orig.tar.xz"
-    if not tarball.exists():
+    if not pkg.tarball_path.exists():
         return subprocess.call(['uscan', '--download-current'], cwd=pkg.path)
 
 def unpackTarball(pkg):
     cl = pkg.changelog
-    tarball = pkg.path.parent/f"{pkg.name}_{cl.version.upstream_version}.orig.tar.xz"
+    tarball = pkg.tarball_path.resolve()
     if not pkg.unpackPath.exists() and tarball.exists():
         subprocess.call(['tar','-xaf', str(tarball)], cwd=pkg.path.parent)
     tarball_path = pkg.unpackPath
