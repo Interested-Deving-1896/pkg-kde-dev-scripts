@@ -26,7 +26,7 @@ summary=b"""+-------------------------------------------------------------------
 | Summary                                                                      |
 +------------------------------------------------------------------------------+"""
 
-def getStatusLocal(pkg):
+def status_local(pkg):
     state = None
     name = pkg.dscPath.stem + "_source.build"
     sourcePath = pkg.dscPath.with_name(name)
@@ -47,8 +47,12 @@ def getStatusLocal(pkg):
     except FileNotFoundError:
             return state
 
-#getStatus = getStatusLocal
-getStatus = salsa.getBuildStatus
+def status_salsa(pkg):
+    salsaPackage = salsa.SalsaPackage(pkg)
+    return salsaPackage.getBuildStatus()
+
+getStatus = status_local
+getStatus = status_salsa
 
 STATUS={"waiting":"blue",
         "started":"yellow",

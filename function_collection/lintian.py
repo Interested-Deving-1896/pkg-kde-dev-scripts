@@ -39,11 +39,13 @@ if ":" in tier:
 else:
     packages = tiers[int(tier)]
 
-for pkg in packages:
+for p in packages:
+    pkg = salsa.SalsaPackage(p)
     try:
-        lintian = salsa.getLintian(pkg)
+        pkg.getLintianPath()
+        lintian = pkg.getLintian()
     except AttributeError:
-        status = salsa.workdir.get(f"status/{pkg.path.name}", {})
+        status = pkg._status
         job_status = status.get('job',{'status':'unknown'})
         lintian_status = status.get('lintian',{'status':'unknown'})
         print(f"SKIPPING - {pkg.name} ({job_status['status']},{lintian_status['status']})")
