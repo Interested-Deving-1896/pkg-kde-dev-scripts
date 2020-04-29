@@ -5,7 +5,17 @@ import salsa
 import itertools
 import sys
 
-IGNORE = ["changelog-should-mention-nmu", "source-nmu-has-incorrect-version-number", "extended-description-is-probably-too-short", "upstream-metadata-missing-bug-tracking", "copyright-refers-to-symlink-license usr/share/common-licenses/GPL", "testsuite-autopkgtest-missing", "spelling-error-in-binary", "duplicate-short-description", "description-synopsis-might-not-be-phrased-properly", "duplicate-long-description"]
+IGNORE = ["changelog-should-mention-nmu",
+        "source-nmu-has-incorrect-version-number",
+        "extended-description-is-probably-too-short",
+        "upstream-metadata-missing-bug-tracking",
+        "copyright-refers-to-symlink-license usr/share/common-licenses/GPL",
+        "testsuite-autopkgtest-missing",
+        "spelling-error-in-binary",
+        "duplicate-short-description",
+        "description-synopsis-might-not-be-phrased-properly",
+        "duplicate-long-description",
+]
 
 def ignore(element):
     for i in IGNORE:
