@@ -1429,6 +1429,27 @@ def getRidOfDebugSymbolPacakge(pkg):
         pkg.git.index.commit(msg)
 
 
+def rules_uses_as_needed_linker_flags(pkg):
+    if not pkg.readyForChanges:
+        print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
+        return -1
+
+    rules = pkg.path/"debian/rules"
+
+    m = re.search(r"^\s*export\s*DEB_LDFLAGS_MAINT_APPEND\s*:=\s*-Wl,--as-needed\s*$", rules.read_text(),re.M)
+
+    if m:
+        text = re.sub(rf"{re.escape(m.group(0))}","", rules.read_text())
+
+        rules.write_text(text)
+        msg = "Remove not needed injection of linker flags."
+        addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
+        pkg.git.index.add(["debian/rules",
+                           "debian/changelog",
+                          ])
+        pkg.git.index.commit(msg)
+
+
 def rulesRequireRoot(pkg):
     if not pkg.readyForChanges:
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
