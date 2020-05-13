@@ -1154,7 +1154,13 @@ def release(pkg, dist):
         addChangeForMainatiner(pkg, f'  * Team upload.', None)
         msg += " as team upload."
 
-    subprocess.call(["dch", "-r", "--distribution", dist], cwd=pkg.path)
+    if str(pkg.version).endswith("~"):
+        cl = pkg.changelog
+        cl.set_version(str(pkg.version)[:-1])
+        with open(pkg.path/'debian/changelog', 'w') as f:
+            cl.write_to_open_file(f)
+
+    subprocess.check_call(["dch", "-r", "--distribution", dist], cwd=pkg.path)
     pkg.git.index.add(["debian/changelog"])
     pkg.git.index.commit(msg)
     subprocess.call(["pkgkde-vcs", "tag", "-s"], cwd=pkg.path)
