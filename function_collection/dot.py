@@ -34,6 +34,7 @@ class TierGraph:
                 deps = copy.copy(ograph[pkg])
                 for dep in ograph[pkg]:
                     deps |= ograph[dep]
+                deps -= {pkg}
                 if deps != ograph[pkg]:
                     changed = True
                 self.full[pkg] = deps
@@ -44,9 +45,9 @@ class TierGraph:
 
         for pkg in self.full:
             deps = copy.copy(graph[pkg])
-            for dep in graph[pkg]:
+            for dep in graph[pkg]-{pkg}:
                 deps -= self.full[dep]
-            self.minimized[pkg] = deps
+            self.minimized[pkg] = deps-{pkg}
 
         pkgs = set(graph.keys())     # packages to order into tiers
         deps = set()                 # All deps from lower tiers
