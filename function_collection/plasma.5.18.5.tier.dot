@@ -1,0 +1,136 @@
+digraph plasmaTier {
+  node [shape=diamond,fillcolor=lightblue,style=filled];
+  "breeze-gtk";
+  "kde-cli-tools";
+  "kmenuedit";
+  "kscreen";
+  "ksysguard";
+  "oxygen";
+  "plasma-desktop";
+  "plasma-integration";
+  "plasma-vault";
+  "powerdevil";
+  "systemsettings";
+  node [shape=ellipse,fillcolor=darkgreen,style=filled];
+  "bluedevil";
+  "breeze-grub";
+  "breeze-plymouth";
+  "drkonqi";
+  "kactivitymanagerd";
+  "kde-gtk-config";
+  "kdecoration";
+  "kdeplasma-addons";
+  "kgamma5";
+  "kinfocenter";
+  "kscreenlocker";
+  "ksshaskpass";
+  "kwallet-pam";
+  "kwayland-integration";
+  "kwrited";
+  "libkscreen";
+  "libksysguard";
+  "milou";
+  "plasma-browser-integration";
+  "plasma-discover";
+  "plasma-nm";
+  "plasma-pa";
+  "plasma-sdk";
+  "plasma-thunderbolt";
+  "plasma-workspace-wallpapers";
+  "plymouth-kcm";
+  "polkit-kde-agent-1";
+  "sddm-kcm";
+  "user-manager";
+  "xdg-desktop-portal-kde";
+  node [shape=ellipse,fillcolor=white,style=filled];
+  subgraph cluster_0 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 0";
+    "bluedevil";
+    "breeze-grub";
+    "breeze-plymouth";
+    "drkonqi";
+    "kactivitymanagerd";
+    "kde-gtk-config";
+    "kdecoration";
+    "kdeplasma-addons";
+    "kgamma5";
+    "kinfocenter";
+    "kscreenlocker";
+    "ksshaskpass";
+    "kwallet-pam";
+    "kwayland-integration";
+    "kwrited";
+    "libkscreen";
+    "libksysguard";
+    "milou";
+    "plasma-browser-integration";
+    "plasma-discover";
+    "plasma-nm";
+    "plasma-pa";
+    "plasma-sdk";
+    "plasma-thunderbolt";
+    "plasma-workspace-wallpapers";
+    "plymouth-kcm";
+    "polkit-kde-agent-1";
+    "sddm-kcm";
+    "user-manager";
+    "xdg-desktop-portal-kde";
+  }
+  subgraph cluster_1 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 1";
+    "breeze";
+    "kscreen";
+    "ksysguard";
+    "oxygen";
+    "plasma-vault";
+  }
+  "kdecoration" -> "breeze";
+  "libkscreen" -> "kscreen";
+  "libksysguard" -> "ksysguard";
+  "kdecoration" -> "oxygen";
+  "libksysguard" -> "plasma-vault";
+  subgraph cluster_2 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 2";
+    "breeze-gtk";
+    "kwin";
+    "plasma-integration";
+  }
+  "breeze" -> "breeze-gtk";
+  "breeze" -> "kwin";
+  "breeze" -> "plasma-integration";
+  subgraph cluster_3 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 3";
+    "plasma-workspace";
+  }
+  "kwin" -> "plasma-workspace";
+  subgraph cluster_4 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 4";
+    "kde-cli-tools";
+    "khotkeys";
+    "plasma-desktop";
+    "powerdevil";
+    "systemsettings";
+  }
+  "plasma-workspace" -> "kde-cli-tools";
+  "plasma-workspace" -> "khotkeys";
+  "plasma-workspace" -> "plasma-desktop";
+  "plasma-workspace" -> "powerdevil";
+  "plasma-workspace" -> "systemsettings";
+  subgraph cluster_5 {
+    style=filled;
+    color=lightgrey;
+    label = "Tier 5";
+    "kmenuedit";
+  }
+  "khotkeys" -> "kmenuedit";
+}
