@@ -11,7 +11,6 @@ IGNORE = ["changelog-should-mention-nmu",
         "source-nmu-has-incorrect-version-number",
         "extended-description-is-probably-too-short",
         "upstream-metadata-missing-bug-tracking",
-        "copyright-refers-to-symlink-license usr/share/common-licenses/GPL",
         "testsuite-autopkgtest-missing",
         "spelling-error-in-binary",
         "duplicate-short-description",
@@ -20,8 +19,18 @@ IGNORE = ["changelog-should-mention-nmu",
         "package-uses-experimental-debhelper-compat-version",
 ]
 
+IGNORE_FRAMEWORKS = ["copyright-refers-to-symlink-license usr/share/common-licenses/GPL",
+]
+
+IGNORE_PIM = ["no-dh-sequencer",
+        "binary-without-manpage",
+        "desktop-entry-lacks-keywords-entry",
+        "public-upstream-key-not-minimal",
+        "no-symbols-control-file",
+]
+
 def ignore(element):
-    for i in IGNORE:
+    for i in IGNORE_FULL:
         if i in element:
             return True
     return False
@@ -29,10 +38,15 @@ def ignore(element):
 product = sys.argv[1]
 tier = sys.argv[2]
 
+IGNORE_FULL = IGNORE
+
 if product == "frameworks":
     tiers = frameworks_management.tiers
+    IGNORE_FULL += IGNORE_FRAMEWORKS
 elif product == "kdepim":
     tiers = pim_management.tiers
+    IGNORE_FULL += IGNORE_PIM
+
 else:
     print("Unknown product.")
     sys.exit(-2)
