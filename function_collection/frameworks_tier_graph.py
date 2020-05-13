@@ -1,9 +1,7 @@
 #! /usr/bin/env python3
 from bs4 import BeautifulSoup
-import copy
 from debian import deb822
 import git
-import os
 import pathlib
 import requests
 import sys
@@ -24,7 +22,6 @@ version = sys.argv[1]
 
 REPLACE = {
         "kcalendarcore": "kcalcore",
-        "kquickcharts": "kqtquickcharts",
         "kirigami2": "kirigami",
 }
 
