@@ -1392,11 +1392,11 @@ def updateSalsaCI(pkg):
     shutil.rmtree(pkg.path/"debian/salsa", ignore_errors=True)
     shutil.copytree(salsaci, pkg.path/"debian", dirs_exist_ok=True)
 
-    for d in pkg.git.index.diff(None):
-        if d.a_path.startswith("debian/salsa"):
-            break
-    else:
-        if not addAnycase:
+    if not addAnycase:
+        for d in pkg.git.index.diff(None):
+            if d.a_path.startswith("debian/salsa"):
+                break
+        else:
             return
 
     msg = "enable team builder to be able to build on salsa."
