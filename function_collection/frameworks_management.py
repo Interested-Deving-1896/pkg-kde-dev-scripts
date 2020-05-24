@@ -1,5 +1,6 @@
 from functions import *
 import salsa
+from simple_pkg import simple_package
 
 kdedir = basedir/"kde"
 
