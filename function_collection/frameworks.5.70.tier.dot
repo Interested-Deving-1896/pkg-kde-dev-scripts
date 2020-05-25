@@ -62,7 +62,6 @@ digraph frameworksTier {
     "kitemmodels";
     "kitemviews";
     "kplotting";
-    "kquickcharts";
     "kwayland";
     "kwidgetsaddons";
     "kwindowsystem";
@@ -92,7 +91,6 @@ digraph frameworksTier {
   "extra-cmake-modules" -> "kitemmodels";
   "extra-cmake-modules" -> "kitemviews";
   "extra-cmake-modules" -> "kplotting";
-  "extra-cmake-modules" -> "kquickcharts";
   "extra-cmake-modules" -> "kwayland";
   "extra-cmake-modules" -> "kwidgetsaddons";
   "extra-cmake-modules" -> "kwindowsystem";
@@ -118,34 +116,38 @@ digraph frameworksTier {
     "kimageformats";
     "kjobwidgets";
     "knotifications";
+    "kpeople";
     "kpty";
     "kunitconversion";
     "syndication";
   }
+  "kconfig" -> "kactivities";
   "kcoreaddons" -> "kactivities";
   "kwindowsystem" -> "kactivities";
-  "kconfig" -> "kactivities";
   "kcoreaddons" -> "kauth";
-  "kwidgetsaddons" -> "kcompletion";
   "kconfig" -> "kcompletion";
-  "kcoreaddons" -> "kcontacts";
-  "ki18n" -> "kcontacts";
+  "kwidgetsaddons" -> "kcompletion";
   "kconfig" -> "kcontacts";
   "kcodecs" -> "kcontacts";
+  "kcoreaddons" -> "kcontacts";
+  "ki18n" -> "kcontacts";
   "kcoreaddons" -> "kcrash";
   "kwindowsystem" -> "kcrash";
-  "ki18n" -> "kdoctools";
   "karchive" -> "kdoctools";
+  "ki18n" -> "kdoctools";
+  "karchive" -> "kfilemetadata";
   "kcoreaddons" -> "kfilemetadata";
   "ki18n" -> "kfilemetadata";
-  "karchive" -> "kfilemetadata";
   "karchive" -> "kimageformats";
   "kcoreaddons" -> "kjobwidgets";
   "kwidgetsaddons" -> "kjobwidgets";
-  "kcoreaddons" -> "knotifications";
   "kconfig" -> "knotifications";
+  "kcoreaddons" -> "knotifications";
   "kwindowsystem" -> "knotifications";
-  "kcodecs" -> "knotifications";
+  "kitemviews" -> "kpeople";
+  "kcoreaddons" -> "kpeople";
+  "kwidgetsaddons" -> "kpeople";
+  "ki18n" -> "kpeople";
   "kcoreaddons" -> "kpty";
   "ki18n" -> "kpty";
   "ki18n" -> "kunitconversion";
@@ -162,13 +164,13 @@ digraph frameworksTier {
     "kservice";
   }
   "kactivities" -> "kactivities-stats";
-  "kdoctools" -> "kconfigwidgets";
   "kauth" -> "kconfigwidgets";
+  "kdoctools" -> "kconfigwidgets";
   "kcrash" -> "kglobalaccel";
   "kdoctools" -> "kjs";
   "kdoctools" -> "kpackage";
-  "kdoctools" -> "kservice";
   "kcrash" -> "kservice";
+  "kdoctools" -> "kservice";
   subgraph cluster_4 {
     style=filled;
     color=lightgrey;
@@ -179,7 +181,8 @@ digraph frameworksTier {
     "kiconthemes";
     "kirigami";
     "kjsembed";
-    "kpeople";
+    "ktextwidgets";
+    "kwallet";
   }
   "kservice" -> "kded";
   "kservice" -> "kdesu";
@@ -187,18 +190,16 @@ digraph frameworksTier {
   "kconfigwidgets" -> "kiconthemes";
   "kpackage" -> "kirigami";
   "kjs" -> "kjsembed";
-  "kservice" -> "kpeople";
+  "kconfigwidgets" -> "ktextwidgets";
+  "kconfigwidgets" -> "kwallet";
+  "kservice" -> "kwallet";
   subgraph cluster_5 {
     style=filled;
     color=lightgrey;
     label = "Tier 5";
-    "ktextwidgets";
-    "kwallet";
     "kxmlgui";
     "qqc2-desktop-style";
   }
-  "kiconthemes" -> "ktextwidgets";
-  "kiconthemes" -> "kwallet";
   "kiconthemes" -> "kxmlgui";
   "kiconthemes" -> "qqc2-desktop-style";
   "kirigami" -> "qqc2-desktop-style";
@@ -244,6 +245,7 @@ digraph frameworksTier {
     "kdewebkit";
     "khtml";
     "kmediaplayer";
+    "kquickcharts";
     "kross";
     "ktexteditor";
     "plasma-framework";
@@ -253,10 +255,11 @@ digraph frameworksTier {
   "kparts" -> "kdewebkit";
   "kparts" -> "khtml";
   "kparts" -> "kmediaplayer";
+  "kdeclarative" -> "kquickcharts";
   "kparts" -> "kross";
   "kparts" -> "ktexteditor";
-  "kparts" -> "plasma-framework";
   "kdeclarative" -> "plasma-framework";
+  "kparts" -> "plasma-framework";
   subgraph cluster_10 {
     style=filled;
     color=lightgrey;
