@@ -460,17 +460,16 @@ def updateHomepagetoInvent(pkg,group):
                     print(f"Homepage does not match new Homepage: \
                           {url} != {block['Homepage']}, \
                            updating..")
-                    block['Homepage'].set_url(url)
+                    block['Homepage'] = url
                     changed = True
-                    block.dump(tmpfile)
-                    
-                tmpfile.write(b'\n')
                 block.dump(tmpfile)
+                continue
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
             
-            if changed:
-                tmpfile.flush()
-                shutil.copyfile(tmpfile.name, control)
-                wrap_and_sort(pkg, "debian/control")
+        if changed:
+            tmpfile.flush()
+            shutil.copyfile(tmpfile.name, control)
 
     if changed:
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
