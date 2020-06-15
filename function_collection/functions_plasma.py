@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # Copyright (C) 2017-2020 Sandro Knauß <hefee@debian.org>
 #
@@ -219,7 +219,7 @@ def prepareNewChangelogEntry(pkg):
         cl.write_to_open_file(f)
 
     pkg.git.index.add(["debian/changelog",
-                      ])
+                    ])
     pkg.git.index.commit(msg)
 
 def fixEpoch(pkg):
@@ -251,7 +251,7 @@ def updateVersion(pkg, version):
         else:
             msg = f"Bump to version {version}."
         pkg.git.index.add(["debian/changelog",
-                          ])
+                        ])
         pkg.git.index.commit(msg)
 
 def printStageDiff(pkg):
@@ -290,8 +290,8 @@ def checkGitStatus(pkg, push=True):
     if logpush:
         print(f"{pkg.name} not pushed:\n{logpush}")
         if not logpull and push:
-              if logpull.find("\n") == -1:
-                   pkg.git.remotes.origin.push()
+            if logpull.find("\n") == -1:
+                pkg.git.remotes.origin.push()
 #              else:
 #                ret = input("Do you want to push y/n?")
 #                if ret.lower() == "y":
@@ -400,8 +400,8 @@ def bumpCompat(pkg, compatlevel):
         (pkg.path/"debian/compat").unlink()
         pkg.git.index.remove(["debian/compat"])
     pkg.git.index.add(["debian/changelog",
-                       "debian/control",
-                      ])
+                    "debian/control",
+                    ])
     pkg.git.index.commit(msg)
 
 def updateVscToSalsa(pkg):
@@ -437,19 +437,20 @@ def updateVscToSalsa(pkg):
     if changed:
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/control",
-                          ])
+                        "debian/control",
+                        ])
         pkg.git.index.commit(msg)
 
-def updateHomepagetoInvent(pkg,group):
+def updateHomepagetoInvent(pkg, salsaSubgroup, upstreamGroup):
     if not pkg.readyForChanges:
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
-        return
+        return -1
+    
     msg = f"Update Homepage link to point to new invent.kde.org"
-    url = f"https://invent.kde.org/{group}/{pkg.upstreamName}"
+    url = f"https://invent.kde.org/{upstreamGroup}/{pkg.upstreamName}"
     control = pkg.path/"debian/control"
 
-    pkg.git.remotes.origin.set_url(f"qt-kde-team:kde/{pkg.name}.git")
+    pkg.git.remotes.origin.set_url(f"qt-kde-team:{salsaSubgroup}/{pkg.name}.git")
 
     changed = False
 
@@ -458,94 +459,108 @@ def updateHomepagetoInvent(pkg,group):
             if block.get("Source"):
                 if block['Homepage'] != url:
                     print(f"Homepage does not match new Homepage: \
-                          {url} != {block['Homepage']}, \
-                           updating..")
+                        {url} != {block['Homepage']}, \
+                        updating..")
                     block['Homepage'] = url
                     changed = True
                 block.dump(tmpfile)
                 continue
             tmpfile.write(b'\n')
             block.dump(tmpfile)
-            
-        if changed:
-            tmpfile.flush()
-            shutil.copyfile(tmpfile.name, control)
+        
+        tmpfile.flush()
+        shutil.copyfile(tmpfile.name, control)
 
     if changed:
+        wrap_and_sort( pkg, "debian/control")
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/control",
-                          ])
+                        "debian/control",
+                        ])
         pkg.git.index.commit(msg)
     else:
         print(f"Homepage is current")
         
         
-def updateCopyrightSourcetoInvent(pkg,group):
+def updateCopyrightSourcetoInvent(pkg, salsaSubgroup, upstreamGroup):
     if not pkg.readyForChanges:
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
-        return
-    msg = f"Update Copyright Source links to invent.kde.org"
-    url = f"https://invent.kde.org/{group}/{pkg.upstreamName}"
-    copy = pkg.path/"debian/copyright"
+        return -1
+    msg = f'Update field Source in debian/copyright to invent.kde.org move.'   
+    url = f"https://invent.kde.org/{upstreamGroup}/{pkg.upstreamName}"
+    copyright_file = pkg.path/"debian/copyright"
 
-    pkg.git.remotes.origin.set_url(f"qt-kde-team:extras/{pkg.upstreamName}.git")
+    pkg.git.remotes.origin.set_url(f"qt-kde-team:{salsaSubgroup}/{pkg.name}.git")
 
     changed = False
-
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with io.open("debian/copyright", 'rt', encoding='utf-8') as cf:
-            c = copyright.Copyright(cf)
-            header = c.header
-            if header.source != url:
-                print(f"Source: does not match. {url} != {header.source}")
-                header.source = str(url)
-                changed = True
-                block.dump(tmpfile)
+        with io.open(copyright_file, 'r+', encoding='utf-8') as f:
+            c = copyright.Copyright(f)
+            for block in c:
+                if hasattr(block, 'source'):
+                    try:
+                        if block.source != url:
+                            print(f'Copyright.Header Source: {block.source} != {url}, /n updating..')
+                            block.source = url
+                            print(f'Source updated: {block.source}')
+                            changed = True     
+                    except AttributeError:
+                        break
+                    print(block.source)
                 tmpfile.write(b'\n')
-
-        tmpfile.flush()
-        shutil.copyfile(tmpfile.name, copy)
-
+                block.dump(tmpfile)
+                
+            tmpfile.flush()
+            shutil.copyfile(tmpfile.name, copyright_file)
+               
     if changed:
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/copyright",
-                          ])
+                           "debian/copyright"
+                           ])
+        print(f"changed: {pkg.name} ")
         pkg.git.index.commit(msg)
-       
-def updateUpstreamContact(pkg,group):
+    else:
+        print(f"Source is current")
+    
+def updateUpstreamContact(pkg, salsaSubgroup):
     if not pkg.readyForChanges:
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
-        return
-    msg = f"Set field Upstream-Contact in debian/copyright."
-    contact = f"Volker Krause vkrause@kde.org"
-    copy = pkg.path/"debian/copyright"
-
-    pkg.git.remotes.origin.set_url(f"qt-kde-team:extras/{pkg.upstreamName}.git")
-
+        return -1
+    msg = f"Set/Update field Upstream-Contact in debian/copyright."
+    copyright_file = pkg.path/"debian/copyright"
+    contact = f"plasma-devel@kde.org",
+    pkg.git.remotes.origin.set_url(f"qt-kde-team:{salsaSubgroup}/{pkg.name}.git")
     changed = False
-
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with io.open('debian/copyright', 'rt', encoding='utf-8') as cf:
-            c = Copyright(cf)
-            header = c.header
-            if header.upstream_contact != contact:
-                print(f"Upstream-Contact: does not match. {contact} != {header.upstream_contact}")
-                header.upstream_contact = str(contact)
-                changed = True
+        with io.open(copyright_file, 'r+', encoding='utf-8') as f:
+            c = copyright.Copyright(f)
+            
+            for block in c:
+                print(block)
+                if hasattr(block, 'upstream_contact'):
+                    try:
+                        if block.upstream_contact != contact:
+                            print(f"Copyright.upstream_contact: {block.upstream_contact} != {contact}")
+                            block.upstream_contact = contact
+                            print(f"Upstream contact updated: {block.upstream_contact}")
+                            changed = True
+                    except AttributeError:
+                        break
                 tmpfile.write(b'\n')
                 block.dump(tmpfile)
-
-        tmpfile.flush()
-        shutil.copyfile(tmpfile.name, copy)
-
+            tmpfile.flush()
+            shutil.copyfile(tmpfile.name, copyright_file)
+               
     if changed:
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/copyright",
-                          ])
+                           "debian/copyright"
+                           ])
+        print(f"changed: {pkg.name} ")
         pkg.git.index.commit(msg)
+    else:
+         print(f"Upstream-Contact is current")
         
 def bumpStandardsVersion(pkg, version, msg=None):
     if not pkg.readyForChanges:
@@ -576,8 +591,8 @@ def bumpStandardsVersion(pkg, version, msg=None):
         print(f"changed: {pkg.name}")
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/control",
-                          ])
+                        "debian/control",
+                        ])
         pkg.git.index.commit(msg)
 
 def listMissingSymbolsfiles(pkg):
@@ -602,8 +617,8 @@ def cmakeUpdateDeps(pkg):
     cl = pkg.changelog
     version= cl.versions[0]
     cmd = [os.path.join('/home/scarlett/pkg-kde-jenkins/hooks/prepare/cmake_update_deps'),
-          "-d", str(pkg.path),
-          "-u", pkg.unpackPath]
+        "-d", str(pkg.path),
+        "-u", pkg.unpackPath]
     ret = subprocess.call(cmd, cwd=pkg.path)
     if ret == 0:
         commit = pkg.git.head.commit
@@ -620,9 +635,9 @@ def decopy(pkg):
     version= cl.versions[0]
     cmd = [ CONFIG['decopy'],
 #           "--split-debian",
-           "--copyright-file", f"{pkg.path/'debian/copyright'}",
-           "-o", f"{pkg.path/'debian/copyright'}"
-          ]
+        "--copyright-file", f"{pkg.path/'debian/copyright'}",
+        "-o", f"{pkg.path/'debian/copyright'}"
+        ]
     return subprocess.call(cmd, cwd=pkg.unpackPath)
 
 def getBuildlogs(pkg):
@@ -800,7 +815,7 @@ def bumpABI(pkg, libname):
                 f.write("\ninclude(/usr/share/pkg-kde-tools/cmake/DebianABIManager.cmake)")
             subprocess.check_call(["quilt","refresh"], cwd=tarball_path)
             pkg.git.index.add(["debian/patches/series",
-                               "debian/patches/enable_debianabimanager.diff"])
+                            "debian/patches/enable_debianabimanager.diff"])
 
 def updateDevDepends(pkg):
     version = pkg.changelog.version.upstream_version
@@ -979,8 +994,8 @@ def updateL10NPkgsVersion(pkg, version):
     rules.write_text(regex.sub(f"\n\g<1>{version}\n",text))
     addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
     pkg.git.index.add(["debian/changelog",
-                       "debian/rules",
-                      ])
+                    "debian/rules",
+                    ])
     pkg.git.index.commit(msg)
 
 def useVirtualPackage(pkg):
@@ -1031,14 +1046,14 @@ def useVirtualPackage(pkg):
 
     contents = rules.read_text()
     lines = [ "include /usr/share/dpkg/pkg-info.mk",
-              """AbiVirtualPackageVersion = $(call dpkg_late_eval,AbiVirtualPackageVersion,echo '${DEB_VERSION_UPSTREAM}' | sed -e 's/\.[0-9]\+$$//')
+            """AbiVirtualPackageVersion = $(call dpkg_late_eval,AbiVirtualPackageVersion,echo '${DEB_VERSION_UPSTREAM}' | sed -e 's/\.[0-9]\+$$//')
 pkgs_lib = $(filter-out %-dev %-doc %-dbg %-data %-bin %-plugins,$(filter lib%,$(shell dh_listpackages)))""",
-              """override_dh_makeshlibs:
-	for pkg in $(pkgs_lib); do \\
-		name=$$( echo "$${pkg}" | sed -e 's/abi[0-9]\+\s*//'); \\
-		echo "ABI:VirtualPackage=$${name}-${AbiVirtualPackageVersion}" >> debian/$${pkg}.substvars; \\
-		$(overridden_command) -p$${pkg} -V "$${pkg} (>= $(DEB_VERSION_EPOCH_UPSTREAM)), $${name}-${AbiVirtualPackageVersion}"; \\
-	done"""
+            """override_dh_makeshlibs:
+        for pkg in $(pkgs_lib); do \\
+                name=$$( echo "$${pkg}" | sed -e 's/abi[0-9]\+\s*//'); \\
+                echo "ABI:VirtualPackage=$${name}-${AbiVirtualPackageVersion}" >> debian/$${pkg}.substvars; \\
+                $(overridden_command) -p$${pkg} -V "$${pkg} (>= $(DEB_VERSION_EPOCH_UPSTREAM)), $${name}-${AbiVirtualPackageVersion}"; \\
+        done"""
             ]
 
     for nr, line in enumerate(lines):
@@ -1075,9 +1090,9 @@ pkgs_lib = $(filter-out %-dev %-doc %-dbg %-data %-bin %-plugins,$(filter lib%,$
         msg = f"Use virtual packages to bundle KDEPIM."
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/control",
-                           "debian/rules",
-                          ])
+                        "debian/control",
+                        "debian/rules",
+                        ])
         pkg.git.index.commit(msg)
 
 
@@ -1092,10 +1107,10 @@ def enforceVirtualPackage(pkg):
         with control.open() as cf:
             for block in deb822.Deb822.iter_paragraphs(cf):
                 if "Package" in block:
-                     if block.get('Package').endswith("-dev"):
-                         a_pkg = apt_cache[block.get('Package')]
-                         unstable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "unstable"] for v in a_pkg.version_list))
-                         libs[block.get('Package')] = Version(unstable.ver_str)
+                    if block.get('Package').endswith("-dev"):
+                        a_pkg = apt_cache[block.get('Package')]
+                        unstable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "unstable"] for v in a_pkg.version_list))
+                        libs[block.get('Package')] = Version(unstable.ver_str)
 
     changed = False
     control = pkg.path/"debian/control"
@@ -1121,8 +1136,8 @@ def enforceVirtualPackage(pkg):
             msg = f"Enforce depdendencies between KDEPIM packages to enable bundling."
             addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
             pkg.git.index.add(["debian/changelog",
-                               "debian/control",
-                              ])
+                            "debian/control",
+                            ])
             pkg.git.index.commit(msg)
 
 
@@ -1205,8 +1220,8 @@ def cleanupBreaknConflicts(pkg):
         msg = f"Delete not needed Breaks/Confilcts."
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/control",
-                          ])
+                        "debian/control",
+                        ])
         pkg.git.index.commit(msg)
 
 def cleanupMetadataObsoleteFields(pkg):
@@ -1239,8 +1254,8 @@ def cleanupMetadataObsoleteFields(pkg):
                 wrap_and_sort(pkg, "debian/upstream/metadata")
                 addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
                 pkg.git.index.add(["debian/changelog",
-                           "debian/upstream/metadata",
-                          ])
+                        "debian/upstream/metadata",
+                        ])
                 pkg.git.index.commit(msg)
 
 def addMissingBugMetadatafields(pkg):
@@ -1257,7 +1272,7 @@ def addMissingBugMetadatafields(pkg):
             for block in deb822.Deb822.iter_paragraphs(cf):
                 block.changed  = False
                 if not "Bug-Database" in block:
-                   block['Bug-Database'] = 'Bug-Database: https://bugs.kde.org/buglist.cgi?product=kuserfeedback&component=general'
+                    block['Bug-Database'] = 'Bug-Database: https://bugs.kde.org/buglist.cgi?product=kuserfeedback&component=general'
                 if not "Bug-Submit" in block:
                     block['Bug-Submit'] = 'Bug-Submit: https://bugs.kde.org/enter_bug.cgi?product=kuserfeedback'
                 if not block.get("Name"):
@@ -1267,17 +1282,17 @@ def addMissingBugMetadatafields(pkg):
                 block.dump(tmpfile)
 
         if changed:
-           tmpfile.flush()
+            tmpfile.flush()
 
-           shutil.copyfile(tmpfile.name, metadata)
+        shutil.copyfile(tmpfile.name, metadata)
 
     if changed:
         wrap_and_sort(pkg, "debian/upstream/metadata")
         msg = f"Add Bug-* entries to metadata file."
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/changelog",
-                           "debian/upstream/metadata",
-                          ])
+                        "debian/upstream/metadata",
+                        ])
         pkg.git.index.commit(msg)
         
 def addMyselfToUploaders(pkg):
@@ -1308,8 +1323,8 @@ def addMyselfToUploaders(pkg):
 
     addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
     pkg.git.index.add(["debian/changelog",
-                       "debian/control",
-                      ])
+                    "debian/control",
+                    ])
     pkg.git.index.commit(msg)
 
 def release(pkg, dist):
@@ -1398,7 +1413,7 @@ def updateEpochInSymbols(pkg):
             f.write_text(text)
 
 def updateCopyrightFormat(pkg):
-    msg = "Check for Upstream Name/Contact"
+    msg = "Check for https format url."
     c = copyright.Copyright((pkg.path/"debian/copyright").open())
     if c.header.format == "http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/":
         c.header.format="https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/"
@@ -1516,9 +1531,9 @@ def getPackage(control):
                 packages[block['Package']] = pkg
                 return pkg
 
-def createPackage(basedir, name):
+def createPackage(basedir, salsaSubgroup, name):
     if not (basedir/name).exists():
-        Git(basedir).clone("qt-kde-team:kde/"+name)
+        Git(basedir).clone("qt-kde-team:"+salsaSubgroup+"/"+name)
         pkg = getPackage((basedir/name)/"debian/control")
         with pkg.git.config_writer() as cw:
             cw.add_section("user")
@@ -1578,8 +1593,8 @@ def updateSalsaCI(pkg):
 
     msg = "enable team builder to be able to build on salsa."
     pkg.git.index.add(["debian/salsa",
-                       "debian/salsa-ci.yml",
-                      ])
+                    "debian/salsa-ci.yml",
+                    ])
     pkg.git.index.commit(msg)
 
 
@@ -1595,7 +1610,7 @@ def getRidOfDebugSymbolPacakge(pkg):
     if m:
         migration_version = m.group(1)
         for block in pkg.controlParagraphs():
-             if block.get('Package','').endswith("-dev"):
+            if block.get('Package','').endswith("-dev"):
                 a_pkg = apt_cache[block.get('Package')]
                 stable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "stable"] for v in a_pkg.version_list))
                 if Version(stable.ver_str) < Version(m.group(1)):
@@ -1607,8 +1622,8 @@ def getRidOfDebugSymbolPacakge(pkg):
         msg = "Get rid of debug-symbol-migration package."
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/rules",
-                           "debian/changelog",
-                          ])
+                        "debian/changelog",
+                        ])
         pkg.git.index.commit(msg)
 
 
@@ -1628,8 +1643,8 @@ def rules_uses_as_needed_linker_flags(pkg):
         msg = "Remove not needed injection of linker flags."
         addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
         pkg.git.index.add(["debian/rules",
-                           "debian/changelog",
-                          ])
+                        "debian/changelog",
+                        ])
         pkg.git.index.commit(msg)
 
 
@@ -1657,8 +1672,8 @@ def rulesRequireRoot(pkg):
     msg = "Add Rules-Requires-Root field to control."
     addChangeForMainatiner(pkg, f'  * {msg}', os.environ['DEBFULLNAME'])
     pkg.git.index.add(["debian/changelog",
-                       "debian/control",
-                      ])
+                    "debian/control",
+                    ])
     pkg.git.index.commit(msg)
 
 
