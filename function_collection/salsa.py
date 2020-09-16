@@ -86,9 +86,11 @@ class SalsaPackage:
                     path.write_bytes(job.trace())
                     log = path.read_text()
 
+                v = self.pkg.version
+                v.epoch = None
                 if j.status == "running":
                     data['status'] = j.status
-                elif re.search(f"^\+ tee -a.*{re.escape(self.pkg.dscPath.stem+'+salsaci_amd64.build')}",log, re.M):
+                elif re.search(f"^dpkg-buildpackage: info: source version {re.escape(str(v)+'+salsaci')}",log, re.M):
                     data['status'] = j.status
                 elif j.status == "running":
                     data['status'] = j.status
