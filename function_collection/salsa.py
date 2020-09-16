@@ -81,6 +81,11 @@ class SalsaPackage:
                     path.write_bytes(job.trace())
 
                 log = path.read_text()
+
+                if not log.strip():
+                    path.write_bytes(job.trace())
+                    log = path.read_text()
+
                 if j.status == "running":
                     data['status'] = j.status
                 elif re.search(f"^\+ tee -a.*{re.escape(self.pkg.dscPath.stem+'+salsaci_amd64.build')}",log, re.M):
