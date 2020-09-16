@@ -67,7 +67,7 @@ class SalsaPackage:
             if status['status'] and status['status'] != "running":
                 return status['status']
         ret_status = "unknown"
-        for j in pipeline.jobs.list():
+        for j in pipeline.jobs.list(all=True):
             if j.name == "build":
                 data = {"pipeline": pipeline.id,
                         "job": {"id":j.id,
