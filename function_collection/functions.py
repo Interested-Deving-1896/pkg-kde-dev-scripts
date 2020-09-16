@@ -146,8 +146,13 @@ class Package:
         path = self.path.with_name(f"{self.sourceName}-{self.upstreamVersion}")
         if not path.exists():
             path = self.path.with_name(f'{self.name}-{self.upstreamVersion}')
-            if not path.exists():
-                path = self.path.with_name(f'{self.path.name}-{self.upstreamVersion}')
+        if not path.exists():
+            path = self.path.with_name(f'{self.path.name}-{self.upstreamVersion}')
+        if not path.exists():
+            with (self.path/"debian/copyright").open('r') as f:
+                d = deb822.Deb822(f)
+                upstream_name = d.get('Upstream-Name')
+                path = self.path.with_name(f'{upstream_name}-{self.upstreamVersion}')
         return path
 
     def dpkgBuildpackage(self):
