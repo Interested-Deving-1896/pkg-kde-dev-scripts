@@ -1159,9 +1159,10 @@ def release(pkg, dist):
         addChangeForMainatiner(pkg, f'  * Team upload.', None)
         msg += " as team upload."
 
-    if str(pkg.version).endswith("~"):
+    v = str(pkg.version)
+    if v.find("~") != -1:
         cl = pkg.changelog
-        cl.set_version(str(pkg.version)[:-1])
+        cl.set_version(v[:v.find("~")])
         with open(pkg.path/'debian/changelog', 'w') as f:
             cl.write_to_open_file(f)
 
