@@ -363,37 +363,36 @@ def bumpCompat(pkg, compatlevel):
     control = pkg.path/"debian/control"
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if block.get("Source"):
-                    rels = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
-                    try:
-                        p = next(filter(lambda x:x[0]['name']=="debhelper", rels))
-                    except StopIteration:
-                        p = next(filter(lambda x:x[0]['name']=="debhelper-compat", rels))
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                rels = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
+                try:
+                    p = next(filter(lambda x:x[0]['name']=="debhelper", rels))
+                except StopIteration:
+                    p = next(filter(lambda x:x[0]['name']=="debhelper-compat", rels))
 
-                    _compatLevel = p[0]['version'][1]
-                    if _compatLevel.endswith("~"):
-                        _compatLevel = _compatLevel[:-1]
-                    ac = int(_compatLevel)
-                    if ac == compatlevel:
-                        return
-                    if ac > compatlevel:
-                        print(f"Skipping {pkg.name}: The compatlevel({ac}) is higher than expected({compatlevel})")
-                        return
+                _compatLevel = p[0]['version'][1]
+                if _compatLevel.endswith("~"):
+                    _compatLevel = _compatLevel[:-1]
+                ac = int(_compatLevel)
+                if ac == compatlevel:
+                    return
+                if ac > compatlevel:
+                    print(f"Skipping {pkg.name}: The compatlevel({ac}) is higher than expected({compatlevel})")
+                    return
 
-                    removeDep(block, 'Build-Depends', 'debhelper')
-                    dep = { 'name': 'debhelper-compat',
-                            'version':  ("=", f"{compatlevel}"),
-                            'archqual': None,
-                            'arch': None,
-                            'restrictions': None,}
+                removeDep(block, 'Build-Depends', 'debhelper')
+                dep = { 'name': 'debhelper-compat',
+                        'version':  ("=", f"{compatlevel}"),
+                        'archqual': None,
+                        'arch': None,
+                        'restrictions': None,}
 
-                    replaceOrAddDep(block, 'Build-Depends', dep)
-                    block.dump(tmpfile)
-                    continue
-                tmpfile.write(b'\n')
+                replaceOrAddDep(block, 'Build-Depends', dep)
                 block.dump(tmpfile)
+                continue
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
 
         tmpfile.flush()
         shutil.copyfile(tmpfile.name, control)
@@ -421,19 +420,18 @@ def updateVscToSalsa(pkg):
     changed = False
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if block.get("Source"):
-                    if block['Vcs-Browser'] != url:
-                        block['Vcs-Browser'] = url
-                        changed = True
-                    if block['Vcs-Git'] != (url+".git"):
-                        block['Vcs-Git'] = url+".git"
-                        changed = True
-                    block.dump(tmpfile)
-                    continue
-                tmpfile.write(b'\n')
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                if block['Vcs-Browser'] != url:
+                    block['Vcs-Browser'] = url
+                    changed = True
+                if block['Vcs-Git'] != (url+".git"):
+                    block['Vcs-Git'] = url+".git"
+                    changed = True
                 block.dump(tmpfile)
+                continue
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
 
         tmpfile.flush()
         shutil.copyfile(tmpfile.name, control)
@@ -483,17 +481,13 @@ def listMissingSymbolsfiles(pkg):
         print(f'Can\'t modify package("{pkg.name}"), cause stage is not clean or no open changelog entry.')
         return
 
-    control = pkg.path/"debian/control"
-    changed = False
-
     l = []
 
-    with control.open() as cf:
-        for block in deb822.Deb822.iter_paragraphs(cf):
-            if block.get('Package'):
-                if re.match(r'^lib.*[0-9]$', block.get('Package')):
-                    if not (pkg.path/f"debian/{block.get('Package')}.symbols").exists():
-                        l.append(block.get('Package'))
+    for block in pkg.controlParagraphs():
+        if block.get('Package'):
+            if re.match(r'^lib.*[0-9]$', block.get('Package')):
+                if not (pkg.path/f"debian/{block.get('Package')}.symbols").exists():
+                    l.append(block.get('Package'))
     return l
 
 def cmakeUpdateDeps(pkg):
@@ -610,18 +604,18 @@ def bumpABI(pkg, libname):
 
 
     control = pkg.path/"debian/control"
-    with control.open() as cf:
-        for block in deb822.Deb822.iter_paragraphs(cf):
-            if block.get("Package"):
-                name = block.get("Package")
-                m = re.match(f"{libname}(?P<abi>[0-9]+)(abi(?P<dabi>[0-9]+))?", name)
-                if m:
-                    abi = int(m.group("abi"))
-                    if block.get("X-Debian-ABI"):
-                        dabi = int(block.get("X-Debian-ABI"))
-                    else:
-                        dabi = 0
-                    break
+
+    for block in pkg.controlParagraphs():
+        if block.get("Package"):
+            name = block.get("Package")
+            m = re.match(f"{libname}(?P<abi>[0-9]+)(abi(?P<dabi>[0-9]+))?", name)
+            if m:
+                abi = int(m.group("abi"))
+                if block.get("X-Debian-ABI"):
+                    dabi = int(block.get("X-Debian-ABI"))
+                else:
+                    dabi = 0
+                break
 
     msg = f"Bump Debian-ABI for {libname}{abi} because of ABI breakage to {dabi+1}."
 
@@ -630,31 +624,30 @@ def bumpABI(pkg, libname):
         fulllibname += f"abi{dabi}"
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
+        for block in pkg.controlParagraphs():
+            name = block.get("Package")
+            if name:
                 name = block.get("Package")
-                if name:
-                    name = block.get("Package")
-                    if name == fulllibname:
-                        block["X-Debian-ABI"] = str(dabi + 1)
-                        block["Package"] = f"{libname}{abi}abi{dabi+1}"
-                    else:
-                        rels = deb822.PkgRelation.parse_relations(block.get("Depends"))
-                        try:
-                            p = next(filter(lambda x:x[0]['name'].startswith(fulllibname), rels))
-                            p[0]['name'] = f"{libname}{abi}abi{dabi+1}"
-                            p[0]['version'] = ('=', '${binary:Version}')
-                            block["Depends"] = rels2str(rels)
-                        except StopIteration:
-                            pass
+                if name == fulllibname:
+                    block["X-Debian-ABI"] = str(dabi + 1)
+                    block["Package"] = f"{libname}{abi}abi{dabi+1}"
+                else:
+                    rels = deb822.PkgRelation.parse_relations(block.get("Depends"))
+                    try:
+                        p = next(filter(lambda x:x[0]['name'].startswith(fulllibname), rels))
+                        p[0]['name'] = f"{libname}{abi}abi{dabi+1}"
+                        p[0]['version'] = ('=', '${binary:Version}')
+                        block["Depends"] = rels2str(rels)
+                    except StopIteration:
+                        pass
 
-                    tmpfile.write(b'\n')
+                tmpfile.write(b'\n')
 
                 block.dump(tmpfile)
-            tmpfile.flush()
-            shutil.copyfile(tmpfile.name, control)
-            wrap_and_sort(pkg, "debian/control")
-            pkg.git.index.add(["debian/control"])
+        tmpfile.flush()
+        shutil.copyfile(tmpfile.name, control)
+        wrap_and_sort(pkg, "debian/control")
+        pkg.git.index.add(["debian/control"])
 
 
     for f in (pkg.path/"debian").glob(fulllibname+".*"):
@@ -707,44 +700,43 @@ def updateDevDepends(pkg):
 
     control = pkg.path/"debian/control"
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if block.get("Source"):
-                    buildDepends = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
-                if block.get("Package"):
-                    name = block.get("Package")
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                buildDepends = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
+            if block.get("Package"):
+                name = block.get("Package")
 
-                    if name.strip().endswith("-dev"):
-                        with tempfile.TemporaryDirectory() as d:
-                            pd = pathlib.Path(d)
-                            debname = f"{name}_{pkg.changelog.version.upstream_version}-{pkg.changelog.version.debian_version}_amd64.deb"
-                            subprocess.check_call(["ar","x",str(pkg.path.with_name(debname))], cwd = pd)
-                            t = tarfile.open(pd/'data.tar.xz')
-                            for member in [i for i in t.getnames() if re.match('\./usr/lib/x86_64-linux-gnu/cmake/.*-debian\.cmake', i)]:
-                                f = t.extractfile(member)
-                                content = f.read()
-                                m = re.search(b'^\s*IMPORTED_LINK_DEPENDENT_LIBRARIES_DEBIAN "([^"]+)"\s*$', content, flags=re.M)
-                                if not m:
-                                    continue
-                                link_dependend_libraries = m.group(1)
-                                link_dependend_libraries = set(link_dependend_libraries.decode().split(";"))
-                                print(name, link_dependend_libraries)
-                                rtd = cud.ReqToDebianPkg()
-                                ldl = rtd.process({i.replace(":",""):cud.Dependency(None) for i in link_dependend_libraries})
-                                for dep in rtd.optional:
-                                    try:
-                                        p = next(filter(lambda x:x[0]['name']==dep, buildDepends))
-                                        print(p)
-                                        replaceOrAddDep(block, "Depends", p[0])
-                                    except StopIteration:
-                                        replaceOrAddDep(block, "Depends", {'name': dep, 'version': None})
-                                print("->", block.get("Depends"))
-                    tmpfile.write(b'\n')
+                if name.strip().endswith("-dev"):
+                    with tempfile.TemporaryDirectory() as d:
+                        pd = pathlib.Path(d)
+                        debname = f"{name}_{pkg.changelog.version.upstream_version}-{pkg.changelog.version.debian_version}_amd64.deb"
+                        subprocess.check_call(["ar","x",str(pkg.path.with_name(debname))], cwd = pd)
+                        t = tarfile.open(pd/'data.tar.xz')
+                        for member in [i for i in t.getnames() if re.match('\./usr/lib/x86_64-linux-gnu/cmake/.*-debian\.cmake', i)]:
+                            f = t.extractfile(member)
+                            content = f.read()
+                            m = re.search(b'^\s*IMPORTED_LINK_DEPENDENT_LIBRARIES_DEBIAN "([^"]+)"\s*$', content, flags=re.M)
+                            if not m:
+                                continue
+                            link_dependend_libraries = m.group(1)
+                            link_dependend_libraries = set(link_dependend_libraries.decode().split(";"))
+                            print(name, link_dependend_libraries)
+                            rtd = cud.ReqToDebianPkg()
+                            ldl = rtd.process({i.replace(":",""):cud.Dependency(None) for i in link_dependend_libraries})
+                            for dep in rtd.optional:
+                                try:
+                                    p = next(filter(lambda x:x[0]['name']==dep, buildDepends))
+                                    print(p)
+                                    replaceOrAddDep(block, "Depends", p[0])
+                                except StopIteration:
+                                    replaceOrAddDep(block, "Depends", {'name': dep, 'version': None})
+                            print("->", block.get("Depends"))
+                tmpfile.write(b'\n')
 
-                block.dump(tmpfile)
-            tmpfile.flush()
-            shutil.copyfile(tmpfile.name, control)
-            wrap_and_sort(pkg, "debian/control")
+            block.dump(tmpfile)
+        tmpfile.flush()
+        shutil.copyfile(tmpfile.name, control)
+        wrap_and_sort(pkg, "debian/control")
 
 
 def createSymbolsFiles(pkg):
@@ -752,38 +744,36 @@ def createSymbolsFiles(pkg):
     if pkg.changelog.version.epoch:
         version = pkg.changelog.version.epoch + ":"+ version
 
-    control = pkg.path/"debian/control"
-    with control.open() as cf:
-        for block in deb822.Deb822.iter_paragraphs(cf):
-            if block.get("Package"):
-                name = block.get("Package")
-                m = re.match(r"(?P<libname>lib.*?(?P<abi>[0-9]+(abi[0-9]+)?))$", name)
-                if m:
-                    libname = m.groups('libname')[0]
-                    if libname == "libkf5":
-                        continue
-                    abi = m.groups('abi')[1]
-                    if not (pkg.path/f"debian/{libname}").exists():
-                        with tempfile.TemporaryDirectory() as d:
-                            pd = pathlib.Path(d)
-                            debname = f"{libname}_{pkg.changelog.version.upstream_version}-{pkg.changelog.version.debian_version}_amd64.deb"
-                            subprocess.check_call(["ar","x",str(pkg.path.with_name(debname))], cwd = pd)
-                            t = tarfile.open(pd/'data.tar.xz')
-                            libfile = [i for i in t.getnames() if re.match(f"^\./usr/lib/x86_64-linux-gnu/lib.*\.so\.{abi}$", i)][0]
-                            libpath = pathlib.Path(libfile)
-                            reallibpath = libpath.parent/t.getmember(libfile).linkpath
-                            templibpath = pd/reallibpath.name
-                            templibpath.write_bytes(t.extractfile("./"+str(reallibpath)).read())
-                            subprocess.check_call(["pkgkde-gensymbols",
-                                f"-p{libname}",
-                                f"-v{version}",
-                                f"-O{pd/'symbols.amd64'}",
-                                f"-e{templibpath}"])
-                            subprocess.check_call(["pkgkde-symbolshelper",
-                                "create",
-                                "-o", f"debian/{libname}.symbols",
-                                "-v", version,
-                                str(pd/'symbols.amd64')], cwd=pkg.path)
+    for block in pkg.controlParagraphs():
+        if block.get("Package"):
+            name = block.get("Package")
+            m = re.match(r"(?P<libname>lib.*?(?P<abi>[0-9]+(abi[0-9]+)?))$", name)
+            if m:
+                libname = m.groups('libname')[0]
+                if libname == "libkf5":
+                    continue
+                abi = m.groups('abi')[1]
+                if not (pkg.path/f"debian/{libname}").exists():
+                    with tempfile.TemporaryDirectory() as d:
+                        pd = pathlib.Path(d)
+                        debname = f"{libname}_{pkg.changelog.version.upstream_version}-{pkg.changelog.version.debian_version}_amd64.deb"
+                        subprocess.check_call(["ar","x",str(pkg.path.with_name(debname))], cwd = pd)
+                        t = tarfile.open(pd/'data.tar.xz')
+                        libfile = [i for i in t.getnames() if re.match(f"^\./usr/lib/x86_64-linux-gnu/lib.*\.so\.{abi}$", i)][0]
+                        libpath = pathlib.Path(libfile)
+                        reallibpath = libpath.parent/t.getmember(libfile).linkpath
+                        templibpath = pd/reallibpath.name
+                        templibpath.write_bytes(t.extractfile("./"+str(reallibpath)).read())
+                        subprocess.check_call(["pkgkde-gensymbols",
+                            f"-p{libname}",
+                            f"-v{version}",
+                            f"-O{pd/'symbols.amd64'}",
+                            f"-e{templibpath}"])
+                        subprocess.check_call(["pkgkde-symbolshelper",
+                            "create",
+                            "-o", f"debian/{libname}.symbols",
+                            "-v", version,
+                            str(pd/'symbols.amd64')], cwd=pkg.path)
 
 def addMissingDependsPackageField(package):
     devPackage = ""
@@ -891,27 +881,26 @@ def useVirtualPackage(pkg):
     changed = False
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                block.changed = False
-                if "Package" in block:
-                    name = block.get('Package').split("-")
+        for block in pkg.controlParagraphs():
+            block.changed = False
+            if "Package" in block:
+                name = block.get('Package').split("-")
 
-                    try:
-                        if block["Provides"] == "${ABI:VirtualPackage}":
-                            continue
-                    except KeyError:
-                        pass
+                try:
+                    if block["Provides"] == "${ABI:VirtualPackage}":
+                        continue
+                except KeyError:
+                    pass
 
-                    if name[0].startswith("lib") and (len(name) < 2 or not name[1] in ("dev", "doc", "dbg", "data", "bin", "plugins")):
-                        block["Provides"] = "${ABI:VirtualPackage}"
-                        block.changed = True
+                if name[0].startswith("lib") and (len(name) < 2 or not name[1] in ("dev", "doc", "dbg", "data", "bin", "plugins")):
+                    block["Provides"] = "${ABI:VirtualPackage}"
+                    block.changed = True
 
-                if not block.get("Source"):
-                    tmpfile.write(b'\n')
-                if block.changed:
-                    changed = True
-                block.dump(tmpfile)
+            if not block.get("Source"):
+                tmpfile.write(b'\n')
+            if block.changed:
+                changed = True
+            block.dump(tmpfile)
 
         if changed:
             tmpfile.flush()
@@ -986,32 +975,29 @@ def enforceVirtualPackage(pkg):
 
     libs = {}
     for p in packages.values():
-        control = p.path/"debian/control"
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if "Package" in block:
-                     if block.get('Package').endswith("-dev"):
-                         a_pkg = apt_cache[block.get('Package')]
-                         unstable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "unstable"] for v in a_pkg.version_list))
-                         libs[block.get('Package')] = Version(unstable.ver_str)
+        for block in p.controlParagraphs():
+            if "Package" in block:
+                 if block.get('Package').endswith("-dev"):
+                     a_pkg = apt_cache[block.get('Package')]
+                     unstable = next(itertools.chain.from_iterable([v for f in v.file_list if f[0].site == 'deb.debian.org' and f[0].archive == "unstable"] for v in a_pkg.version_list))
+                     libs[block.get('Package')] = Version(unstable.ver_str)
 
     changed = False
     control = pkg.path/"debian/control"
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if block.get("Source"):
-                    rels = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
-                    for rel in rels:
-                        if rel[0]['name'] in libs:
-                            if rel[0]['version'] != (">>", str(libs[rel[0]['name']])):
-                                changed = True
-                            rel[0]['version'] = (">>", str(libs[rel[0]['name']]))
-                    block["Build-Depends"] = rels2str(rels)
-                    block.dump(tmpfile)
-                    continue
-                tmpfile.write(b'\n')
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                rels = deb822.PkgRelation.parse_relations(block.get("Build-Depends"))
+                for rel in rels:
+                    if rel[0]['name'] in libs:
+                        if rel[0]['version'] != (">>", str(libs[rel[0]['name']])):
+                            changed = True
+                        rel[0]['version'] = (">>", str(libs[rel[0]['name']]))
+                block["Build-Depends"] = rels2str(rels)
                 block.dump(tmpfile)
+                continue
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
         if changed:
             tmpfile.flush()
             shutil.copyfile(tmpfile.name, control)
@@ -1064,35 +1050,34 @@ def cleanupBreaknConflicts(pkg):
     changed = False
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                block.changed  = False
-                if "Breaks" in block:
-                    rels = deb822.PkgRelation.parse_relations(block.get("Breaks"))
-                    nrels = cleanup(rels)
-                    if nrels:
-                        block['Breaks'] = rels2str(nrels)
-                    else:
-                        del block['Breaks']
-                if "Conflicts" in block:
-                    rels = deb822.PkgRelation.parse_relations(block.get("Conflicts"))
-                    nrels = cleanup(rels)
-                    if nrels:
-                        block['Conflicts'] = rels2str(nrels)
-                    else:
-                        del block['Conflicts']
-                if "Replaces" in block:
-                    rels = deb822.PkgRelation.parse_relations(block.get("Replaces"))
-                    nrels = cleanup(rels)
-                    if nrels:
-                        block['Replaces'] = rels2str(nrels)
-                    else:
-                        del block['Replaces']
-                if not block.get("Source"):
-                    tmpfile.write(b'\n')
-                if block.changed:
-                    changed = True
-                block.dump(tmpfile)
+        for block in pkg.controlParagraphs():
+            block.changed  = False
+            if "Breaks" in block:
+                rels = deb822.PkgRelation.parse_relations(block.get("Breaks"))
+                nrels = cleanup(rels)
+                if nrels:
+                    block['Breaks'] = rels2str(nrels)
+                else:
+                    del block['Breaks']
+            if "Conflicts" in block:
+                rels = deb822.PkgRelation.parse_relations(block.get("Conflicts"))
+                nrels = cleanup(rels)
+                if nrels:
+                    block['Conflicts'] = rels2str(nrels)
+                else:
+                    del block['Conflicts']
+            if "Replaces" in block:
+                rels = deb822.PkgRelation.parse_relations(block.get("Replaces"))
+                nrels = cleanup(rels)
+                if nrels:
+                    block['Replaces'] = rels2str(nrels)
+                else:
+                    del block['Replaces']
+            if not block.get("Source"):
+                tmpfile.write(b'\n')
+            if block.changed:
+                changed = True
+            block.dump(tmpfile)
 
         if changed:
             tmpfile.flush()
@@ -1116,19 +1101,18 @@ def addMyselfToUploaders(pkg):
     control = pkg.path/"debian/control"
 
     with tempfile.NamedTemporaryFile() as tmpfile:
-        with control.open() as cf:
-            for block in deb822.Deb822.iter_paragraphs(cf):
-                if block.get("Source"):
-                    try:
-                        next(filter(lambda x: x.startswith(CONFIG['name']),[i.strip() for i in re.split("[\n,]", block.get("Uploaders"))]))
-                    except StopIteration:
-                        block['Uploaders'] += f",\n    {CONFIG['name']} <{CONFIG['email']}>"
-                        block.dump(tmpfile)
-                        continue
-                    else:
-                        return
-                tmpfile.write(b'\n')
-                block.dump(tmpfile)
+        for block in pkg.controlParagraphs():
+            if block.get("Source"):
+                try:
+                    next(filter(lambda x: x.startswith(CONFIG['name']),[i.strip() for i in re.split("[\n,]", block.get("Uploaders"))]))
+                except StopIteration:
+                    block['Uploaders'] += f",\n    {CONFIG['name']} <{CONFIG['email']}>"
+                    block.dump(tmpfile)
+                    continue
+                else:
+                    return
+            tmpfile.write(b'\n')
+            block.dump(tmpfile)
 
         tmpfile.flush()
         shutil.copyfile(tmpfile.name, control)
@@ -1150,9 +1134,8 @@ def release(pkg, dist):
         return -2
 
     msg = f"release to {dist}"
-    control = pkg.path/"debian/control"
     try:
-        d = deb822.Deb822(control.open())
+        d = next(pkg.controlParagraphs())
         next(filter(lambda x: x.startswith(CONFIG['name']),[i.strip() for i in re.split("[\n,]", d.get("Uploaders"))]))
     except StopIteration:
         addChangeForMainatiner(pkg, '', None)
