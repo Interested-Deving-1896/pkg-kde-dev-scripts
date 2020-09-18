@@ -70,8 +70,12 @@ def rels2str(rels):
     return ', '.join(map(pp_or_dep, rels))
 
 class Package:
-    def __init__(self, pkg):
+    def __init__(self, pkg, basedir=None):
         self.pkg = pkg
+        if basedir:
+            self.basedir = basedir
+        else:
+            self.basedir = BASEDIR
         self.name = pkg['Package']
         p = pathlib.Path(pkg['Vcs-Git'])
         self.upstreamName = p.stem
@@ -82,7 +86,7 @@ class Package:
 
     @property
     def path(self):
-        return basedir/self.subdir
+        return self.basedir/self.subdir
 
     @property
     def dirty(self):
@@ -1157,17 +1161,17 @@ def release(pkg, dist):
 multiarchhints=None
 
 def updateMultiarchHints():
-    with open(os.path.join(CONFIG['basedir'],'multiarch-hints.yaml'),'w') as f:
+    with open(BASEDIR / 'multiarch-hints.yaml','w') as f:
         f.write(requests.get('https://dedup.debian.net/static/multiarch-hints.yaml').text)
 
 def updateUDD():
-    with open(os.path.join(CONFIG['basedir'],'udd.yaml'),'w') as f:
+    with open(BASEDIR / 'udd.yaml','w') as f:
         f.write(requests.get('https://udd.debian.org/dmd/?email1=debian-qt-kde%40lists.debian.org&format=yaml').text)
 
 def checkForMultiarchHints(pkg):
     global multiarchhints
     if not multiarchhints:
-        with open(os.path.join(CONFIG['basedir'], 'multiarch-hints.yaml'),'r') as f:
+        with open(BASEDIR / 'multiarch-hints.yaml','r') as f:
             dataMap = yaml.load(f)
         multiarchhints = dataMap['hints']
 
@@ -1181,11 +1185,11 @@ def checkForMultiarchHints(pkg):
     return hints
 
 def updateBritneyOutput():
-    with open(os.path.join(CONFIG['basedir'],'update_output.txt'),'w') as f:
+    with open(BASEDIR / 'update_output.txt','w') as f:
         f.write(requests.get('https://release.debian.org/britney/update_output.txt').text)
 
 def checkForBritney(pkg):
-    britney = open(os.path.join(CONFIG['basedir'], 'update_output.txt'),'r').read()
+    britney = open(BASEDIR / 'update_output.txt','r').read()
     ret = []
     for i in re.finditer(f"trying:.*\s{pkg.name}(\s+.*|)\nskipped:.*\n(    .*\n)*", britney):
         ret.append(i.group(0))
@@ -1494,7 +1498,7 @@ import cmake_update_deps as cud
 
 apt_cache = apt_pkg.Cache()
 
-basedir = pathlib.Path(CONFIG['basedir'])
+BASEDIR = pathlib.Path(CONFIG['basedir'])
 
 packages = {}
 
