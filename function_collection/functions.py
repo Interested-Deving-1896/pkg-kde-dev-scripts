@@ -1120,9 +1120,9 @@ def addMyselfToUploaders(pkg):
             for block in deb822.Deb822.iter_paragraphs(cf):
                 if block.get("Source"):
                     try:
-                        next(filter(lambda x: x.startswith("Sandro Knau"),[i.strip() for i in re.split("[\n,]", block.get("Uploaders"))]))
+                        next(filter(lambda x: x.startswith(CONFIG['name']),[i.strip() for i in re.split("[\n,]", block.get("Uploaders"))]))
                     except StopIteration:
-                        block['Uploaders'] += ",\n    Sandro Knauß <hefee@debian.org>"
+                        block['Uploaders'] += f",\n    {CONFIG['name']} <{CONFIG['email']}>"
                         block.dump(tmpfile)
                         continue
                     else:
@@ -1153,7 +1153,7 @@ def release(pkg, dist):
     control = pkg.path/"debian/control"
     try:
         d = deb822.Deb822(control.open())
-        next(filter(lambda x: x.startswith("Sandro Knau"),[i.strip() for i in re.split("[\n,]", d.get("Uploaders"))]))
+        next(filter(lambda x: x.startswith(CONFIG['name']),[i.strip() for i in re.split("[\n,]", d.get("Uploaders"))]))
     except StopIteration:
         addChangeForMainatiner(pkg, '', None)
         addChangeForMainatiner(pkg, f'  * Team upload.', None)
