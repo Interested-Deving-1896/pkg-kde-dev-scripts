@@ -53,7 +53,7 @@ class SalsaPackage:
         return gl.projects.get(self._project['id'], lazy=True)
 
     def getLintian(self):
-        m = re.search(r"\$ lintian [^\n]*?\nwarning: the authors of lintian do not recommend running it with root privileges!\n(.*)\n[^\n]*?lintian2j", self.lintian_path.read_text(),re.S)
+        m = re.search(r"\$ lintian (?!--version)[^\n]*?\n(.*)\n[^\n]*\n[^\n]*?\$ lintian2junit.py", self.lintian_path.read_text(),re.S)
         return m.group(1).splitlines()
 
     def getBuildStatus(self):
