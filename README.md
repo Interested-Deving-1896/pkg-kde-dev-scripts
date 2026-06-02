@@ -4,7 +4,7 @@
 [![Built with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/Interested-Deving-1896/pkg-kde-dev-scripts)
 
 <!-- AI:start:what-it-does -->
-This project provides a collection of development scripts for managing and automating tasks related to KDE package maintenance. It addresses common challenges faced by developers and maintainers working with KDE packaging workflows, such as source package building, dependency management, and version control integration.
+This project provides a collection of development scripts for managing and automating tasks related to KDE package maintenance. It addresses common challenges in building, migrating, and handling source packages, primarily for developers and maintainers working with KDE or related packaging workflows.
 <!-- AI:end:what-it-does -->
 
 ## Architecture
@@ -53,7 +53,12 @@ Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-
 ## Contributors
 
 <!-- AI:start:contributors -->
-_Contributors pending._
+[@hefee](https://github.com/hefee) - 68 commits
+[@jmsantamaria](https://github.com/jmsantamaria) - 13 commits
+[@maxyz](https://github.com/maxyz) - 11 commits
+[@Interested-Deving-1896](https://github.com/Interested-Deving-1896) - 4 commits
+
+*This repository is a mirror. Please refer to the upstream source for additional contributions and history.*
 <!-- AI:end:contributors -->
 
 ## Origins
