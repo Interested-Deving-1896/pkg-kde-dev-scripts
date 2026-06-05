@@ -81,12 +81,12 @@ Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-
 ## Contributors
 
 <!-- AI:start:contributors -->
-[@hefee](https://github.com/hefee) - 68 commits  
-[@jmsantamaria](https://github.com/jmsantamaria) - 13 commits  
-[@maxyz](https://github.com/maxyz) - 11 commits  
-[@Interested-Deving-1896](https://github.com/Interested-Deving-1896) - 7 commits  
+[@hefee](https://github.com/hefee): 68 commits  
+[@Interested-Deving-1896](https://github.com/Interested-Deving-1896): 17 commits  
+[@jmsantamaria](https://github.com/jmsantamaria): 13 commits  
+[@maxyz](https://github.com/maxyz): 11 commits  
 
-*Note: This repository is a mirror. Please refer to the upstream source for the original project.*
+*Note: This repository may be a mirror. Please refer to the upstream source for additional contributions.*
 <!-- AI:end:contributors -->
 
 ## Origins
