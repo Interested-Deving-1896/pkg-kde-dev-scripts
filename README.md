@@ -4,34 +4,26 @@
 [![Built with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/Interested-Deving-1896/pkg-kde-dev-scripts)
 
 <!-- AI:start:what-it-does -->
-This project provides a collection of development scripts for managing and automating tasks related to packaging KDE software. It addresses common challenges in maintaining KDE packages, such as source package creation, dependency management, and version control integration. It is primarily used by developers and maintainers working on KDE-related distributions or repositories.
+This project provides development scripts for maintaining and building KDE packages. It is used by developers and maintainers to streamline tasks such as packaging, version management, and build automation within KDE-related projects.
 <!-- AI:end:what-it-does -->
 
 ## Architecture
 
 <!-- AI:start:architecture -->
-The project consists of a collection of Python scripts and shell utilities designed to assist with KDE package development and maintenance. The scripts handle tasks such as source package building, changelog merging, and package migration. The components interact primarily through file I/O, with some scripts serving as standalone utilities and others designed to work in sequence for specific workflows.
-
-The repository structure is flat, with all scripts located at the root level. Each script is independent, and their usage depends on the specific task being performed. Below is the directory structure:
+The project consists of a collection of Python scripts designed to assist with KDE package development. Key components include scripts for automating packaging tasks, managing dependencies, and handling version updates. These scripts interact with KDE source repositories and Debian packaging tools to streamline workflows. The repository is structured as follows:
 
 ```plaintext
 pkg-kde-dev-scripts/
-├── README.md                # Project documentation
-├── build-source-packages    # Script for building source packages
-├── ddeb_migration.py        # Python script for migrating debug symbol packages
-├── ddeb_migration3.py       # Python 3 version of ddeb_migration
-├── do-all                   # Script to execute tasks across multiple packages
-├── edit-control-all         # Script to batch-edit Debian control files
-├── group_breaks.py          # Python script for managing package breaks
-├── mergechanges-all         # Script to merge changelogs across packages
-├── snarf-i386-kdetrunk      # Script to fetch i386 KDE trunk packages
-├── snarf-orig-kdetrunk      # Script to fetch original KDE trunk packages
-├── snarf-orig-local         # Script to fetch local original packages
-├── snarf-packages-git       # Script to fetch packages from Git repositories
-├── snarf-source-kdetrunk    # Script to fetch source KDE trunk packages
+├── bin/                # Executable scripts for various packaging tasks
+├── lib/                # Shared Python modules used by the scripts
+├── tests/              # Unit tests for the scripts and modules
+├── docs/               # Documentation for usage and contribution
+├── examples/           # Example configurations and usage scenarios
+├── LICENSE             # License file for the project
+└── README.md           # Project overview and usage instructions
 ```
 
-Each script is self-contained, with no shared libraries or dependencies beyond standard Python modules and system utilities.
+Scripts in the `bin/` directory are the primary entry points, while `lib/` contains reusable components. Tests in the `tests/` directory ensure functionality and reliability.
 <!-- AI:end:architecture -->
 
 ## Install
