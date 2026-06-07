@@ -10,27 +10,28 @@ This project provides a collection of development scripts for managing and autom
 ## Architecture
 
 <!-- AI:start:architecture -->
-This project consists of Python scripts and shell utilities designed to assist with KDE package development and maintenance. The key components include scripts for managing source packages, editing control files, handling Debian debug symbols (ddebs), and automating tasks like merging changes or fetching package sources. These scripts interact primarily with Debian packaging tools and KDE repositories.
+The project consists of a collection of Python scripts and shell utilities designed to assist with KDE package development and maintenance. The scripts handle tasks such as source package building, changelog merging, and package migration. The components interact primarily through file I/O, with some scripts serving as standalone utilities and others designed to work in sequence for specific workflows.
 
-The directory structure is flat, with all scripts located at the top level. Each script serves a specific function, such as `ddeb_migration.py` for migrating debug symbols or `mergechanges-all` for merging changes across packages. Shared functions are encapsulated in `function_collection`.
+The repository structure is flat, with all scripts located at the root level. Each script is independent, and their usage depends on the specific task being performed. Below is the directory structure:
 
 ```plaintext
-.
+pkg-kde-dev-scripts/
 ├── README.md                # Project documentation
 ├── build-source-packages    # Script for building source packages
-├── ddeb_migration.py        # Handles migration of debug symbols
-├── ddeb_migration3.py       # Python 3 version of ddeb migration
-├── do-all                   # Executes tasks across multiple packages
-├── edit-control-all         # Edits control files for multiple packages
-├── function_collection      # Shared utility functions
-├── group_breaks.py          # Groups package breaks for dependency management
-├── mergechanges-all         # Merges changes across packages
-├── snarf-i386-kdetrunk      # Fetches i386 KDE trunk packages
-├── snarf-orig-kdetrunk      # Fetches original KDE trunk packages
-├── snarf-orig-local         # Fetches local original packages
-├── snarf-packages-git       # Fetches packages from Git repositories
-├── snarf-source-kdetrunk    # Fetches source packages from KDE trunk
+├── ddeb_migration.py        # Python script for migrating debug symbol packages
+├── ddeb_migration3.py       # Python 3 version of ddeb_migration
+├── do-all                   # Script to execute tasks across multiple packages
+├── edit-control-all         # Script to batch-edit Debian control files
+├── group_breaks.py          # Python script for managing package breaks
+├── mergechanges-all         # Script to merge changelogs across packages
+├── snarf-i386-kdetrunk      # Script to fetch i386 KDE trunk packages
+├── snarf-orig-kdetrunk      # Script to fetch original KDE trunk packages
+├── snarf-orig-local         # Script to fetch local original packages
+├── snarf-packages-git       # Script to fetch packages from Git repositories
+├── snarf-source-kdetrunk    # Script to fetch source KDE trunk packages
 ```
+
+Each script is self-contained, with no shared libraries or dependencies beyond standard Python modules and system utilities.
 <!-- AI:end:architecture -->
 
 ## Install
@@ -81,10 +82,10 @@ Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-
 ## Contributors
 
 <!-- AI:start:contributors -->
-[@hefee](https://github.com/hefee): 68 commits  
-[@Interested-Deving-1896](https://github.com/Interested-Deving-1896): 17 commits  
-[@jmsantamaria](https://github.com/jmsantamaria): 13 commits  
-[@maxyz](https://github.com/maxyz): 11 commits  
+[@hefee](https://github.com/hefee): 68 commits
+[@Interested-Deving-1896](https://github.com/Interested-Deving-1896): 17 commits
+[@jmsantamaria](https://github.com/jmsantamaria): 13 commits
+[@maxyz](https://github.com/maxyz): 11 commits
 
 *Note: This repository may be a mirror. Please refer to the upstream source for additional contributions.*
 <!-- AI:end:contributors -->
